@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { RemamedContextType, RenamedType, useRenamedContext } from '../context/RenamedContext';
 import RenamableDescription from './RenamableDescription';
 import { Transaction } from '../types/transaction';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 type PropsType = {
     transaction: Transaction,
@@ -22,7 +23,28 @@ const RenderItem = ({ transaction: transaction, action, actionFunc, index, secti
             index === 0 && styles.itemFirst,
             index === section?.data.length - 1 && styles.itemLast,
         ]} >
-            <View style={styles.col1}>
+            <View style={[styles.col1, {
+                flexDirection: 'row',
+                alignItems: "center",
+            }]}>
+                {/*todo: винести в ініший компонент */}
+                <Pressable
+                    style={({ pressed }) => [
+                        {
+                            width: 50,
+                            height: 50,
+                            borderRadius: 10,
+                            padding: 2,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginHorizontal: 5,
+                            backgroundColor: pressed ? '#6c757d' : '#343a40',
+                        },
+                    ]}
+                    onPress={() => { }}
+                >
+                    <MaterialIcons name={"circle"} size={30} style={{ color: "white" }} />
+                </Pressable>
                 <RenamableDescription transaction={transaction} />
             </View>
             <View style={styles.col2}>
@@ -32,6 +54,19 @@ const RenderItem = ({ transaction: transaction, action, actionFunc, index, secti
                 }]}>{transaction.amount / 100}</Text>
             </View>
             <View style={styles.col3}>
+                <Pressable
+                    style={({ pressed }) => [
+                        {
+                            backgroundColor: pressed ? '#7E191B' : '#A45A52',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        },
+                        styles.button,
+                    ]}
+                    onPress={() => {}}
+                >
+                    <MaterialIcons name={"edit"} size={15} style={{ color: "white" }} />
+                </Pressable>
                 <Pressable
                     style={({ pressed }) => [
                         {
@@ -59,11 +94,11 @@ const styles = StyleSheet.create({
 
 
         gap: 20,
-
+        height: 80
 
     },
     col1: {
-        flex: 6,
+        flex: 5,
     },
     col2: {
         flex: 3,
@@ -71,7 +106,8 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     col3: {
-        flex: 1,
+        flex: 2,
+        flexDirection:"row",
     },
     text: {
         color: "white",
@@ -102,7 +138,7 @@ const styles = StyleSheet.create({
     itemFirst: {
         borderTopLeftRadius: 8,
         borderTopRightRadius: 8,
-        
+
     },
     itemLast: {
         borderBottomLeftRadius: 8,

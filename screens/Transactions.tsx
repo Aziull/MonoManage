@@ -7,6 +7,7 @@ import Grouped from '../components/Grouped';
 import { useStats } from '../hook/useStats';
 import { Transaction } from '../types/transaction';
 import Actions from '../components/actions/Actions';
+import Categories from '../components/categories/Categories';
 
 const Transactions = () => {
     const { state, addToIgnored } = useIgnoredTransactionsContext();
@@ -24,11 +25,16 @@ const Transactions = () => {
                 <Text style={[styles.white, styles.f20]}>{stats[1].title} {stats[1].value}</Text>
                 <Text style={[styles.white, styles.fs16]}>{stats[3].title} {stats[3].value}</Text>
             </View>
-          <Actions />
-            <View style={styles.container}>
+            <View style={[
+                styles.container,
+            ]}>
                 <Grouped transactions={state.transactions} actionFunc={remove} />
             </View>
-            <StatusBar style="auto" />
+            <View style={{ rowGap: 10 }}>
+                <Categories />
+            </View>
+            <Actions />
+            <StatusBar style="auto" /> 
         </Layout>
     )
 }
@@ -46,10 +52,10 @@ const styles = StyleSheet.create({
         textAlign: "center"
     },
     container: {
-        borderRadius: 20,
-        backgroundColor: '#0b1d25',
+        // borderRadius: 20,
+        // backgroundColor: '#0b1d25',
 
-        marginHorizontal: 10,
+        // marginHorizontal: 10,
         marginBottom: 10,
 
         flex: 1,

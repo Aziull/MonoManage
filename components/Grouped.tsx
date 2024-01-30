@@ -68,15 +68,13 @@ const Grouped = ({ transactions, actionFunc }: Props) => {
 
 const styles = StyleSheet.create({
     sectionHeader: {
-       // backgroundColor: '#000',
+        // backgroundColor: '#000',
         paddingVertical: 15,
-        borderTopEndRadius: 15,
-        borderTopStartRadius: 15,
         alignItems: 'center',
     },
     sectionHeaderText: {
         fontSize: 15,
-        color: 'silver',
+        // color: 'silver',
     },
     separator: {
         height: 20,

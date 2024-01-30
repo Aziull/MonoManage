@@ -17,9 +17,9 @@ const screenOptions = (iconName) => ({
     tabBarActiveTintColor: '#A45A52',
     tabBarInactiveTintColor: 'silver',
     tabBarStyle: {
-        backgroundColor: '#0d2324',
+        backgroundColor: '#162836',
         borderTopWidth: 0,
-        
+        borderTopColor: "#276e72"
     },
 });
 

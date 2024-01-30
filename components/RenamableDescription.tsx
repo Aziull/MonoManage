@@ -38,7 +38,7 @@ const RenamableDescription = ({ transaction }: { transaction: Transaction }) => 
             style={[
               styles.input,
               {
-                width: '70%',
+                width: '45%',
               },
             ]}
           />
