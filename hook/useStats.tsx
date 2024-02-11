@@ -1,17 +1,19 @@
 import dayjs from "dayjs";
-import { useIgnoredTransactionsContext } from "../context/TransactionsContext";
-import { Transaction } from "../api/monoApi";
+import { Transaction } from "../types/transaction";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 
 export const useStats = () => {
-    const { state } = useIgnoredTransactionsContext();
-    const totalAmount = state.transactions.reduce((accumulator, transaction) => {
+    const { transactions } = useSelector((state: RootState) => state.transaction);
+    
+    const totalAmount = transactions.reduce((accumulator, transaction) => {
         return accumulator + transaction.amount;
     }, 0);
 
     const today = dayjs().date();
     const average = totalAmount / today;
 
-    const transactionsToday = state.transactions.filter((transaction: Transaction) => {
+    const transactionsToday = transactions.filter((transaction: Transaction) => {
         const transactionDate: dayjs.Dayjs = dayjs(transaction.time * 1000);
 
         return transactionDate.date() === today;
