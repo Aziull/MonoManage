@@ -5,15 +5,16 @@ import dayjs from 'dayjs';
 
 
 import Button from '../components/Button';
-import DataPickerModal from '../modal/DataPickerModal';
+import DataPickerModal from '../modal/DatePickerModal';
 import { useStats } from '../hook/useStats';
 import { Guid } from 'guid-ts';
 import { useIgnoredTransactionsContext } from '../context/TransactionsContext';
 import { Transaction } from '../types/transaction';
+import { TransactionFormProps } from '../navigation/types';
 
 
-const NewTransaction = ({ navigation }) => {
-    const { create } = useIgnoredTransactionsContext();
+const NewTransaction = ({ navigation }: TransactionFormProps) => {
+    // const { create } = useIgnoredTransactionsContext();
     const { stats } = useStats();
     const [description, setDescription] = useState('');
 
@@ -44,8 +45,10 @@ const NewTransaction = ({ navigation }) => {
             time: date.unix()
         }
 
-        await create(instance);
-        navigation.navigate('Transactions')
+        // await create(instance);
+        navigation.navigate('Home', {
+            screen: "Transactions"
+        })
     }
 
     return (

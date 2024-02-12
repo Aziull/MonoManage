@@ -3,28 +3,27 @@ import { View, StyleSheet, Text, Button, FlatList } from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import Layout from '../components/Layout';
 import RenderItem from '../components/RenderItem';
-import { useIgnoredTransactionsContext } from '../context/TransactionsContext';
 import { Transaction } from '../types/transaction';
 
 
 const DeletedTransactions = () => {
-    const { state, removeFromIgnored } = useIgnoredTransactionsContext();
 
-    const totalAmount = state.ignoredTransactions.reduce((accumulator, transaction) => {
-        return accumulator + transaction.amount;
-    }, 0);
-
+    // const totalAmount = state.ignoredTransactions.reduce((accumulator, transaction) => {
+    //     return accumulator + transaction.amount;
+    // }, 0);
+    const totalAmount = 0;
     const ItemSeparator = () => {
         return <View style={styles.separator} />;
     };
 
 
     const remove = async (transaction: Transaction) => {
-        await removeFromIgnored(transaction);
+        //await removeFromIgnored(transaction);
     }
-    const sortedIgnoredTransactions: Transaction[] = [...state.ignoredTransactions].sort(
-        (a, b) => a.time - b.time
-    );
+    // const sortedIgnoredTransactions: Transaction[] = [...state.ignoredTransactions].sort(
+    //     (a, b) => a.time - b.time
+    // );
+    const sortedIgnoredTransactions = []
 
     return (
         <Layout>
@@ -35,7 +34,7 @@ const DeletedTransactions = () => {
                     style={{ flexGrow: 1 }}
                     data={sortedIgnoredTransactions}
                     ItemSeparatorComponent={ItemSeparator}
-                    renderItem={({ item, index }) => (<RenderItem index={index} section={null} transaction={item} action='+' actionFunc={remove} />)}
+                    renderItem={({ item, index }) => (<RenderItem index={index} section={null} transaction={item} action='check' actionFunc={remove} />)}
                 />
             </View>
             <StatusBar style="auto" />

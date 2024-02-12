@@ -1,14 +1,18 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { BottomTabNavigationOptions, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Transactions from './Transactions';
 import DeletedTransactions from './DeletedTransactions';
+import { BottomTabParamList, HomeProps } from '../navigation/types';
+import Layout from '../components/Layout';
+import { Text } from 'react-native';
 
-const { Navigator, Screen } = createBottomTabNavigator();
+
+const { Navigator, Screen } = createBottomTabNavigator<BottomTabParamList>();
 
 // Опції для екранів
-const screenOptions = (iconName) => ({
-    tabBarIcon: ({ color, size }) => (
+const screenOptions = (iconName: string): BottomTabNavigationOptions => ({
+    tabBarIcon: ({ color, size }: { color: string, size: number }) => (
         <Icon name={iconName} size={size} color={color} />
     ),
     tabBarHideOnKeyboard: true,
@@ -17,13 +21,13 @@ const screenOptions = (iconName) => ({
     tabBarActiveTintColor: '#A45A52',
     tabBarInactiveTintColor: 'silver',
     tabBarStyle: {
-        backgroundColor: '#0d2324',
+        backgroundColor: '#9575CD',
         borderTopWidth: 0,
-        
+
     },
 });
 
-const Home = () => {
+const Home: React.FC<HomeProps> = () => {
     return (
         <Navigator initialRouteName="Transactions">
             <Screen

@@ -1,60 +1,98 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { WebView, WebViewProps } from 'react-native-webview';
-import { RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { useAuthContext } from '../context/AuthContext';
-import { Text } from 'react-native';
+import React, { useState } from 'react';
+import { WebView, WebViewMessageEvent } from 'react-native-webview';
+import { Linking, Text } from 'react-native';
+import { useDispatch, } from 'react-redux';
+import { AppDispatch, } from '../store';
+import { setAuthToken } from '../features/authToken/slice';
+import { getUserAsync } from '../features/user/thunks';
+import { WebScreenProps } from '../navigation/types';
 
-type RootStackParamList = {
-    Home: undefined;
-    WebScreen: { url: string };
-};
 
-type WebScreenRouteProp = RouteProp<RootStackParamList, 'WebScreen'>;
-type WebScreenNavigationProp = StackNavigationProp<RootStackParamList, 'WebScreen'>;
+const WebScreen = ({ route }: WebScreenProps) => {
+    const dispatch: AppDispatch = useDispatch();
 
-type WebScreenProps = {
-    route: WebScreenRouteProp;
-    navigation: WebScreenNavigationProp;
-};
-
-const WebScreen: React.FC<WebScreenProps> = ({ route, navigation }) => {
     const { url } = route.params;
-    const { signIn } = useAuthContext();
+    const [text, setText] = useState("Виконуємо вхід...")
+
     const scripts = `
+    const sendMessage = () => {
+        const element = document.querySelector(".id")?.innerHTML;
+        if(element.length){
+            window.ReactNativeWebView.postMessage(JSON.stringify(element));
+        }
+        
+    };
+
+    // Функція для обробки змін в DOM
+    const handleMutation = (mutationsList) => {
+        for (const mutation of mutationsList) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                sendMessage();
+            }
+        }
+    };
+
+    // Створення MutationObserver
+    const observer = new MutationObserver(handleMutation);
+
+    // Налаштування MutationObserver для відстеження змін в дочірніх елементах body
+    observer.observe(document.body, { childList: true, subtree: true });
+
     setTimeout(function () {
         const qrCodeDiv = document.getElementById('qrcode');
         if (qrCodeDiv) {
-            const qrImage = qrCodeDiv.querySelector('img');
-            if (qrImage) {
-                qrImage.click();
-            } else {
-                const element = document.querySelector(".id")?.innerHTML || 'No data';
-                window.ReactNativeWebView.postMessage(JSON.stringify(element));
-                window.close();
+            const element = document.querySelector(".id")?.innerHTML;
+            if (!element.length) {
+                isScanned = true;
+                window.ReactNativeWebView.postMessage(JSON.stringify(qrCodeDiv.title));
+                return;
             }
+            sendMessage();
         }
     }, 500);
 `;
-    const onMessage = async (event) => {
-        await signIn(event.nativeEvent.data.slice(1, -1))
+
+    const openLink = (url: string) => {
+        Linking.openURL(url)
+            .then((supported) => {
+                if (!supported) {
+                    console.log(`Не вдалося відкрити посилання: ${url}`);
+                }
+            })
+            .catch((err) => console.error('Помилка відкриття посилання', err));
+    };
+
+
+    function isURL(str: string) {
+        const urlRegex = /^(https?:\/\/)?([\w-]+(\.[\w-]+)+\/?)|localhost(\:\d{2,5})?(\/\S*)?$/;
+        return urlRegex.test(str);
+    }
+    const onMessage = async (event: WebViewMessageEvent) => {
+        const data = event.nativeEvent.data.slice(1, -1);
+        if (isURL(data)) {
+            openLink(data);
+            return
+        }
+        setText("Майже готово...")
+        dispatch(setAuthToken({ authToken: data }));
+        dispatch(getUserAsync());
     }
     return (
         <>
-         <WebView
-            source={{ uri: url }}
-            style={{ opacity: 0}}
-            javaScriptEnabled={true}
-            injectedJavaScript={scripts}
-            onMessage={onMessage}
-            options={{
-                headerShown: false,
-            }}
+            <WebView
+                source={{ uri: url }}
+                style={{ opacity: 0, flex: 0 }}
+                javaScriptEnabled={true}
+                injectedJavaScript={scripts}
+                onMessage={onMessage}
+                options={{
+                    headerShown: false,
+                }}
 
-        />
-        <Text style={{flex:1}}>
-            Loading...
-        </Text>
+            />
+            <Text style={{ flex: 1 }}>
+                {text}
+            </Text>
         </>
     );
 };
