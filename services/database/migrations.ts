@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS Accounts (
   balance REAL,
   userId TEXT,
   type TEXT,
+  updatedAt INTEGER,
   FOREIGN KEY (userId) REFERENCES Users(id)
 );
 `;
@@ -60,11 +61,18 @@ CREATE TABLE IF NOT EXISTS IgnoredTransactionIds (
 );
 `;
 
+const updateAccountsTableToAddUpdatedAt = `
+ALTER TABLE Accounts ADD COLUMN updatedAt INTEGER;
+`;
+
 export const migrate = (db: Database) => {
   db.transaction(tx => {
     tx.executeSql(createUsersTable);
     tx.executeSql(createAccountsTable);
     tx.executeSql(createTransactionsTable);
+
+    // Оновлення таблиці Accounts, додавання колонки updatedAt
+    // tx.executeSql(updateAccountsTableToAddUpdatedAt);
 
     // Додавання запису адміністратора
     // Переконайтеся, що ви додали перевірку на існування адміністратора,
@@ -73,6 +81,11 @@ export const migrate = (db: Database) => {
       if (rows.length === 0) {
         // Адміністратор не знайдений, додати його
         tx.executeSql(insertAdmin);
+        tx.executeSql(insertAccount);
+      }
+    });
+    tx.executeSql('SELECT * FROM Accounts WHERE id = ?', ['cash'], (_, { rows }) => {
+      if (rows.length === 0) {
         tx.executeSql(insertAccount);
       }
     });

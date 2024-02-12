@@ -18,11 +18,18 @@ export const insertOrUpdate = async (db: Database, table: string, data: { [key: 
     let values = Object.values(data);
 
     let sql;
+
+    let placeholders = keys.map(() => '?').join(', ');
     if (condition) {
-        let setString = keys.map((key) => `${key} = ?`).join(', ');
-        sql = `UPDATE ${table} SET ${setString} WHERE ${condition}`;
+
+        const selectResult = await executeSqlAsync(db, `SELECT * FROM ${table} WHERE ${condition}`);
+        if (selectResult.rows.length > 0) {
+            let setString = keys.map((key) => `${key} = ?`).join(', ');
+            sql = `UPDATE ${table} SET ${setString} WHERE ${condition}`;
+        } else {
+            sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`;
+        }
     } else {
-        let placeholders = keys.map(() => '?').join(', ');
         sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`;
     }
 

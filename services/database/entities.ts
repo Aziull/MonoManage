@@ -11,6 +11,7 @@ export interface Account extends BaseModel {
     balance: number; // REAL в SQLite відповідає number в TypeScript
     userId: string; // Зв'язок з таблицею Users
     type: string; // Тип рахунку (custom або bank)
+    updatedAt: number;
 }
 
 export interface Transaction extends BaseModel {
