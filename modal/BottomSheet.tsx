@@ -1,4 +1,4 @@
-import React, { useEffect, ReactNode, useState } from 'react';
+import React, { useEffect, ReactNode, useState, useRef } from 'react';
 import { Modal, StyleSheet, TouchableOpacity, Animated, PanResponder, Dimensions, View, ModalProps } from 'react-native';
 
 type BottomSheetProps = {
@@ -9,7 +9,7 @@ type BottomSheetProps = {
 } & ModalProps;
 
 const BottomSheet: React.FC<BottomSheetProps> = ({ isVisible, onDismiss, children, style }) => {
-    const [draggedPositionY, setDraggedPositionY] = useState(new Animated.Value(0));
+    const draggedPositionY = useRef(new Animated.Value(0)).current;
     const screenHeight = Dimensions.get('window').height;
 
     const panResponder = PanResponder.create({
@@ -41,7 +41,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isVisible, onDismiss, childre
 
     useEffect(() => {
         if (isVisible) {
-            setDraggedPositionY(new Animated.Value(0));
+            draggedPositionY.setValue(0);
         }
     }, [isVisible]);
 
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     overlay: {
         flex: 1,
         justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: 'rgba(0,0,0,0.2)',
     },
     container: {
         backgroundColor: 'white',
