@@ -23,21 +23,28 @@ const filters = [
 ]
 
 const FilterOptions = ({ visible }: { visible: boolean }) => {
+    // Створення анімованого значення для контролю висоти
+    const heightAnim = useRef(new Animated.Value(0)).current; // Початкове значення 0
 
-    const applyFilters = () => {
-        // Тут можна додати логіку для застосування фільтрів
-    };
+    useEffect(() => {
+        Animated.timing(heightAnim, {
+            toValue: visible ? 1 : 0,
+            duration: 300,
+            useNativeDriver: false, 
+        }).start();
+    }, [visible, heightAnim]);
 
-    if (!visible) {
-        return null;
-    }
+    const interpolatedHeight = heightAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '7%'], // Зміна висоти від 0% до 100%
+    });
 
     return (
-        <ScrollView horizontal contentContainerStyle={styles.filterContainer}>
-            {filters.map((e, index) => (
-                <FilterOption key={index} name={e.name} onPress={e.onPress} component={e.component} />
-            ))}
-        </ScrollView>
+        <Animated.ScrollView horizontal contentContainerStyle={[styles.filterContainer]} style={[{ height: interpolatedHeight }]}>
+                {filters.map((filter, index) => (
+                    <FilterOption key={index} name={filter.name} onPress={filter.onPress} component={filter.component} />
+                ))}
+        </Animated.ScrollView>
     );
 };
 
