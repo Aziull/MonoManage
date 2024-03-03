@@ -9,7 +9,7 @@ export interface TransactionDto {
     description: string;
     hold?: boolean;
     id: string;
-    mcc?: number;
+    mcc?: string;
     operationAmount?: number;
     originalMcc?: number;
     receiptId?: string;
