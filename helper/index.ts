@@ -1,11 +1,13 @@
 import { ArrayHelper } from "./array"
+import { Category } from "./category";
 import { MathHelper } from "./math";
 import { TransactionHelper } from "./transaction";
 
 const Helper = {
     Array: ArrayHelper,
     Math: MathHelper,
-    Tranasctions: TransactionHelper
+    Tranasctions: TransactionHelper,
+    Category: Category,
 }
 
 export default Helper;
