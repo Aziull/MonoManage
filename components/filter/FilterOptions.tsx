@@ -2,48 +2,36 @@ import { Animated, ScrollView, StyleSheet } from "react-native";
 import FilterOption from "./filterOption";
 import Timeframe from "./criteria/Timeframe";
 import { useEffect, useRef } from "react";
+import { useKeyboardVisible } from "../../hook/useKeyboardVisible";
 
 
 const filters = [
-    {
-        name: "За категоріями",
-        onPress: () => { },
-        component: <Timeframe />
-    },
-    {
-        name: "За акаунтами",
-        onPress: () => { },
-        component: <Timeframe />
-    },
-    {
-        name: "За датою",
-        onPress: () => { },
-        component: <Timeframe />
-    }
+    { name: "За категоріями", onPress: () => { }, Component: Timeframe, apply: () => { } },
+    { name: "За акаунтами", onPress: () => { }, Component: Timeframe },
+    { name: "За датою", onPress: () => { }, Component: Timeframe }
 ]
 
 const FilterOptions = ({ visible }: { visible: boolean }) => {
-    // Створення анімованого значення для контролю висоти
-    const heightAnim = useRef(new Animated.Value(0)).current; // Початкове значення 0
+    const heightAnim = useRef(new Animated.Value(0)).current;
 
+    const isKeyboard = useKeyboardVisible();
     useEffect(() => {
         Animated.timing(heightAnim, {
             toValue: visible ? 1 : 0,
             duration: 300,
-            useNativeDriver: false, 
+            useNativeDriver: false,
         }).start();
     }, [visible, heightAnim]);
 
     const interpolatedHeight = heightAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: ['0%', '7%'], // Зміна висоти від 0% до 100%
+        outputRange: ['0%', !isKeyboard ? '7%' : '12%'],
     });
-
     return (
         <Animated.ScrollView horizontal contentContainerStyle={[styles.filterContainer]} style={[{ height: interpolatedHeight }]}>
-                {filters.map((filter, index) => (
-                    <FilterOption key={index} name={filter.name} onPress={filter.onPress} component={filter.component} />
-                ))}
+            {filters.map((filter, index) => (
+                <FilterOption key={index} name={filter.name} onPress={filter.onPress} Component={filter.Component} />
+            ))}
         </Animated.ScrollView>
     );
 };

@@ -7,11 +7,11 @@ import BottomSheet from "../../modal/BottomSheet";
 type PropsType = {
     name: string,
     onPress: () => void,
-    component: React.ReactNode
+    Component: () => React.JSX.Element
 }
 
 // Припустимо, у нас є функціональний компонент FilterOptions
-const FilterOption = ({ name, onPress, component }: PropsType) => {
+const FilterOption = ({ name, onPress, Component }: PropsType) => {
     const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
     const toggleBottomSheet = () => setIsBottomSheetVisible((prev) => !prev);
     // const toggleBottomSheet = () => setIsBottomSheetVisible(false);
@@ -23,7 +23,7 @@ const FilterOption = ({ name, onPress, component }: PropsType) => {
             </View>
 
             <BottomSheet style={{backgroundColor: '#EDE7F6'}} isVisible={isBottomSheetVisible} onDismiss={toggleBottomSheet}>
-                {component}
+                <Component  />
             </BottomSheet>
         </Button>
     );

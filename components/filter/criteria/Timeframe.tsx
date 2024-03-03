@@ -2,7 +2,12 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Button from "../../Button";
 import { useState } from "react";
 import { TouchableOpacity } from "react-native";
-import DatePickerModal from "../../../modal/DatePickerModal";
+import DatePickerModal, { Range as RangeModal } from "../../../modal/DatePickerModal";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../../store";
+import { setDateRange } from "../../../features/filter/slice";
+import dayjs from "dayjs";
+import { convertToDate } from "../../../features/filter/lib";
 type Range = {
     title: string;
     fromDate?: Date;
@@ -10,6 +15,7 @@ type Range = {
 };
 
 const formatDate = (date: Date): string => {
+    date = new Date(date);
     const months = ['січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов', 'лис', 'гру'];
     const day = date.getDate();
     const month = months[date.getMonth()];
@@ -50,22 +56,36 @@ const Timeframe = () => {
 
     const [isShowModal, setIsShowModal] = useState(false)
 
+    const dispatch = useDispatch();
+
     const handleSelectionChange = (range: Range) => {
-        setSelectedRange(range);
+        setSelectedRange(prev => ({
+            ...range,
+            fromDate: range.fromDate || prev?.fromDate,
+            toDate: range.toDate || prev?.toDate,
+        }));
+
+        if (!range.fromDate || !range.toDate) setIsShowModal(true);
     };
 
-    const onSetFromDateSubmit = () => {
-
+    const onSubmit = (range: RangeModal) => {
+        setSelectedRange(prev => ({
+            ...prev,
+            fromDate: range.startDate,
+            toDate: range.endDate,
+        }) as Range)
+        setIsShowModal(false);
     }
 
-    const onSetToDateSubmit = () => {
+
+    //todo: можливо перенести на рівень вище
+    const apply = () => {
+        dispatch(setDateRange({
+            start: convertToDate(selectedRange?.fromDate)?.getTime(),
+            end: convertToDate(selectedRange?.toDate)?.getTime(),
+        }))
 
     }
-
-    const onCancelSubmit = () => {
-        setIsShowModal(false)
-    }
-
     return (
         <View style={{ alignItems: 'center' }}>
             <Text style={styles.headerText}>Період часу</Text>
@@ -82,11 +102,19 @@ const Timeframe = () => {
 
             </View >
             <DatePickerModal
-                locale='uk'
-                onSubmit={() => { setIsShowModal(false) }}
-                onCancelSubmit={onCancelSubmit}
-                onValueChange={() => { }}
-                visible={isShowModal}
+                datePickerProps={{
+                    mode: 'range',
+                    locale: 'uk',
+                    params: {
+                        startDate: selectedRange?.fromDate,
+                        endDate: selectedRange?.toDate,
+                    }
+                }}
+                modalProps={{
+                    visible: isShowModal,
+                }}
+                onSubmit={onSubmit}
+                cancel={() => setIsShowModal(false)}
             />
             <View style={{
                 marginBottom: 15,
@@ -120,21 +148,15 @@ const Timeframe = () => {
                 alignItems: 'center',
                 borderRadius: 10,
                 marginBottom: 40
-            }}>
+            }}
+                onPress={apply}
+            >
                 <Text style={{
                     color: '#EDE7F6',
                     fontSize: 18,
                 }}>Застосувати</Text>
             </Button>
 
-            {/* <DataPickerModal
-                visible={isOpen}
-                value={date}
-                onSubmit={toggle}
-                onRequestClose={toggle}
-                locale='uk'
-                onValueChange={(date) => setDate(dayjs(date))}
-            /> */}
         </View >
     )
 }
