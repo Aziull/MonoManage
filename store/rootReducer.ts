@@ -6,6 +6,7 @@ const appReducer = combineReducers({
   auth: reducers.authReducer,
   authToken: reducers.authTokenReducer,
   transaction: reducers.TransactionReducer,
+  filters: reducers.FiltersReducer,
   [baseApi.reducerPath]: baseApi.reducer,
 });
 
