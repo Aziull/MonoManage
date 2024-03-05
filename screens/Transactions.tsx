@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react'
-import { View, StyleSheet, Text } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, Text, KeyboardAvoidingView, Platform, Pressable } from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import Layout from '../components/Layout';
-import Grouped from '../components/Grouped';
-import { Transaction } from '../types/transaction';
+import Grouped from '../components/transactionList/Grouped';
 import Actions from '../components/actions/Actions';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { AppDispatch, RootState } from '../store';
@@ -16,31 +15,50 @@ import { BankList } from '../features/api/config';
 import { addBankTransactionsAsync } from '../features/transaction/thunks';
 import { fetchAndSaveBankAccounts } from '../features/user/thunks';
 import Helper from '../helper';
+import Search from '../components/transactionSearch/search';
+import Button from '../components/Button';
+import FilterOptions from '../components/filter/FilterOptions';
+import { Transaction } from '../features/transaction/types';
+import FilterActionButton from '../components/filter/FilterActionButton';
+import FilterTransactions from '../widgets/FilterTransactions';
+import { useKeyboardVisible } from '../hook/useKeyboardVisible';
+import { convertToDate } from '../features/filter/lib';
+import dayjs from 'dayjs';
+import { applyFilters } from '../utils/filters/applyFilters';
 
 const Transactions = () => {
     const { user }: { user: User | null } = useSelector((state: RootState) => state.auth);
     const { authToken } = useSelector((state: RootState) => state.authToken);
+    const { description, dateRange, accountsId } = useSelector((state: RootState) => state.filters);
+    const isKeyboardVisible = useKeyboardVisible()
+
     const dispatch = useDispatch<AppDispatch>()
     const today = new Date();
-    const from = new Date(today.getFullYear(), today.getMonth(), 1);
-
+    const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30);
 
     useEffect(() => {
         if (!user || !authToken) return
-        dispatch(fetchAndSaveBankAccounts({ bankName: BankList.monobank, requestPath: 'clientInfo' }))
-        dispatch(addBankTransactionsAsync({
-            bankName: BankList.monobank,
-            requestPath: 'transactions',
-            accountId: 0,
-            from: from.getTime(),
-            to: today.getTime()
-        }));
-    }, [user, authToken])
+        accountsId.forEach(id => {
+            dispatch(addBankTransactionsAsync({
+                bankName: BankList.monobank,
+                requestPath: 'transactions',
+                accountId: id,
+                from: from.getTime(),
+                to: today.getTime()
+            }));
+        })
+    }, [user, authToken, accountsId])
 
 
     const { transactions } = useSelector((state: RootState) => state.transaction)
 
-    const stats = Helper.Tranasctions.generateStatistics(transactions)
+    const filtered = applyFilters(transactions, {
+        description: description,
+        timeframe: dateRange,
+        accountsId: accountsId,
+    })
+
+    const stats = Helper.Tranasctions.generateStatistics(filtered)
     const remove = async (transaction: Transaction) => {
         dispatch(addToIgnored(transaction));
     }
@@ -65,12 +83,14 @@ const Transactions = () => {
 
 
             <View style={styles.container}>
-                <Grouped transactions={transactions} actionFunc={remove} />
-                <Text>search</Text>
+                <Grouped transactions={filtered} actionFunc={remove} />
+                <FilterTransactions />
             </View>
-            <Text>settings</Text>
-            <Actions />
-            <StatusBar style="auto" />
+
+            {!isKeyboardVisible && <Actions />}
+
+
+            < StatusBar style="auto" />
         </Layout>
     )
 }
@@ -81,7 +101,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 10,
+        paddingHorizontal: 10,
     },
     balanceText: {
         fontSize: 24,
@@ -97,19 +117,6 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         color: '#512DA8',
     },
-
-
-    white: {
-        color: '#673AB7',
-    },
-    f20: {
-        fontSize: 20,
-    },
-    total: {
-        color: '#512DA8',
-        fontSize: 30,
-        textAlign: "center"
-    },
     container: {
 
         flex: 1,
@@ -123,26 +130,8 @@ const styles = StyleSheet.create({
         shadowRadius: 4, // Радіус розмиття тіні
         elevation: 5, // Висота тіні для Android
     },
-    actions: {
-        zIndex: 1,
-        paddingBottom: 10,
-    },
-
-    plus: {
-        left: 0,
-    },
-    search: {
-        position: "absolute",
-        right: 0
-    },
     separator: {
         height: 20,
     },
-    silver: {
-        color: "silver",
-    },
-    fs16: {
-        fontSize: 16,
-    }
 });
 export default Transactions

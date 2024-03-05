@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { Linking, Text } from 'react-native';
-import { useDispatch, } from 'react-redux';
-import { AppDispatch, } from '../store';
+import { useDispatch, useSelector, } from 'react-redux';
+import { AppDispatch, RootState, } from '../store';
 import { setAuthToken } from '../features/authToken/slice';
-import { getUserAsync } from '../features/user/thunks';
+import { fetchAndSaveBankAccounts, getUserAsync } from '../features/user/thunks';
 import { WebScreenProps } from '../navigation/types';
+import { BankList } from '../features/api/config';
 
 
 const WebScreen = ({ route }: WebScreenProps) => {
     const dispatch: AppDispatch = useDispatch();
-
+    const { authToken } = useSelector((state: RootState) => state.authToken)
     const { url } = route.params;
     const [text, setText] = useState("Виконуємо вхід...")
 
@@ -77,6 +78,11 @@ const WebScreen = ({ route }: WebScreenProps) => {
         dispatch(setAuthToken({ authToken: data }));
         dispatch(getUserAsync());
     }
+    useEffect(() => {
+        if (authToken) {
+            dispatch(fetchAndSaveBankAccounts({ bankName: BankList.monobank, requestPath: 'clientInfo' }))            
+        }
+    }, [authToken])
     return (
         <>
             <WebView
