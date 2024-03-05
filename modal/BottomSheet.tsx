@@ -5,7 +5,7 @@ type BottomSheetProps = {
     isVisible: boolean;
     onDismiss: () => void;
     children: ReactNode;
-    
+
 } & ModalProps;
 
 const BottomSheet: React.FC<BottomSheetProps> = ({ isVisible, onDismiss, children, style }) => {
@@ -46,7 +46,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({ isVisible, onDismiss, childre
     }, [isVisible]);
 
     return (
-        <Modal visible={isVisible} transparent onRequestClose={onDismiss} animationType="slide">
+        <Modal visible={isVisible} transparent onRequestClose={onDismiss} animationType='fade'>
             <TouchableOpacity
                 onPress={onDismiss}
                 activeOpacity={1}
@@ -80,10 +80,9 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderTopRightRadius: 20,
         borderTopLeftRadius: 20,
-        minHeight: 300,
         padding: 16,
-        paddingTop:10,
-        paddingBottom: 0, 
+        paddingTop: 10,
+        paddingBottom: 0,
     },
     draggableIndicator: {
         width: 30,
