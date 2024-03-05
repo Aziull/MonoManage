@@ -5,5 +5,5 @@ export type FilterCriteria = {
         start?: number | null,
         end?: number | null,
     };
-    accountIds?: string[];
+    accountsId?: string[];
 };

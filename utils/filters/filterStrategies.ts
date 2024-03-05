@@ -21,12 +21,12 @@ const timeframeFilter = (criteria: FilterCriteria) => (transaction: Transaction)
 };
 
 const accountIdFilter = (criteria: FilterCriteria) => (transaction: Transaction) => {
-    return criteria.accountIds ? criteria.accountIds.includes(transaction.accountId) : true;
+    return criteria.accountsId ? criteria.accountsId.includes(transaction.accountId) : true;
 };
 
 export const filterStrategies = {
     categories: categoriesFilter,
     timeframe: timeframeFilter,
-    accountId: accountIdFilter,
+    accountsId: accountIdFilter,
     description: descriptionFilter,
 };
