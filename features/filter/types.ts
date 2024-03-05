@@ -7,6 +7,6 @@ export interface DateRange {
 
 export interface FiltersState {
     dateRange: DateRange;
-    accountIds: string[];
+    accountsId: string[];
     description: string;
 }

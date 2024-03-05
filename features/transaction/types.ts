@@ -28,7 +28,7 @@ export interface BankRequestArgs {
 }
 
 export interface BankAccountTransactionsRequestArgs extends BankRequestArgs {
-    accountId: string | number,
+    accountId: string,
     from: number,
     to: number,
 }

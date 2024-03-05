@@ -35,26 +35,9 @@ export const fetchAndSaveBankAccounts = createAsyncThunk(
 
 export const getUserAsync = createAsyncThunk(
     'auth/getUserAsync',
-    async (_, { getState, dispatch }) => {
-        const condition = `id = 'admin' OR name = 'admin'`;
+    async (_, { }) => {
+        const condition = `id = 'admin'`;
         const [user]: UserEntity[] = await UserModel.selectAll(condition)
-        const accounts: AccountEntity[] = await AccountModel.selectAll(`userId = '${user.id}'`);
-        return { user, accounts }
+        return { user }
     }
 )
-
-export const getAllAcoountsAsync = createAsyncThunk(
-    'accounts/getAllAcoountsAsync',
-    async (_, { getState }) => {
-        const { user } = (getState() as RootState).auth;
-        if (!user) return isRejectedWithValue('User not exist');
-        try {
-
-            const accounts: AccountEntity[] = await AccountModel.selectAll();
-
-            return accounts as Account[];
-        } catch (error) {
-            return isRejectedWithValue('Error fetching data'); // Обробка помилки, якщо така виникає
-        }
-    }
-);

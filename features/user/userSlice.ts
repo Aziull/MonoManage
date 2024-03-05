@@ -1,8 +1,8 @@
 //features/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { userApi } from './userApi';
-import { Account, User } from './types';
-import { getAllAcoountsAsync, getUserAsync } from './thunks';
+import { User } from './types';
+import { getUserAsync } from './thunks';
 
 interface AuthState {
   user: User | null;
@@ -26,41 +26,15 @@ const authSlice = createSlice({
     logout: (state: AuthState) => {
       state.user = null;
     },
-    addBankAccounts: (state, action) => {
-      if (state.user) {
-        state.user.bankAccounts.push(action.payload)
-      }
-    },
   },
   extraReducers: (builder) => {
-
-    builder.addCase(getAllAcoountsAsync.fulfilled, (state, action) => {
-      const accounts = action.payload;
-      if (typeof accounts === "boolean" || !state.user) return
-      const bankAccounts = accounts.filter(e => e.type === "bank")
-      const customAccounts = accounts.filter(e => e.type === "custom")
-      state.user.bankAccounts = bankAccounts;
-      state.user.accounts = customAccounts;
-    });
     builder.addCase(getUserAsync.fulfilled, (state, action) => {
-
-      const { user, accounts } = action.payload;
-
-      const bankAccounts = accounts.filter(account => account.type === "bank")
-      const customAccounts = accounts.filter(e => e.type === "custom")
+      const { user } = action.payload;
       state.user = {
         id: user.id,
         name: user.name,
-        bankAccounts,
-        accounts: customAccounts
       }
     });
-    // builder.addMatcher(
-    //   userApi.endpoints.getBankAccounts.matchFulfilled,
-    //   (state, { payload }) => {
-    //     state.user?.bankAccounts.push(...payload);
-    //   }
-    // );
     builder.addMatcher(
       userApi.endpoints.getBankAccounts.matchRejected,
       (state, { payload }) => {
@@ -70,6 +44,6 @@ const authSlice = createSlice({
   }
 });
 
-export const { createUser, logout, addBankAccounts } = authSlice.actions;
+export const { createUser, logout } = authSlice.actions;
 
 export default authSlice.reducer;
