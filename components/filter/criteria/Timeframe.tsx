@@ -86,6 +86,8 @@ const Timeframe = () => {
         }))
 
     }
+
+    const disabled = !selectedRange?.fromDate || !selectedRange.toDate
     return (
         <View style={{ alignItems: 'center' }}>
             <Text style={styles.headerText}>Період</Text>
@@ -142,13 +144,14 @@ const Timeframe = () => {
             </View>
 
             <Button style={{
-                backgroundColor: '#512DA8',
+                backgroundColor: disabled ? 'rgba(82, 45, 168, 0.5)' : '#512DA8',
                 width: '100%',
                 padding: 13,
                 alignItems: 'center',
                 borderRadius: 10,
                 marginBottom: 40
             }}
+                disabled={disabled}
                 onPress={apply}
             >
                 <Text style={{

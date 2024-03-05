@@ -66,7 +66,20 @@ const Accounts = () => {
                     }}
                 />
             </ScrollView>
-            <Button onPress={applySelection} style={[styles.applyButton, { backgroundColor: isSelectionEmpty ? 'rgba(82, 45, 168, 0.5)' : '#512DA8' }]} disabled={isSelectionEmpty}>
+            <Button
+                onPress={applySelection}
+                style={[
+                    styles.applyButton,
+                    {
+                        backgroundColor: isSelectionEmpty ? 'rgba(82, 45, 168, 0.5)' : '#512DA8',
+                        elevation: 3,
+                        shadowOpacity: 0.1,
+                        shadowRadius: 3,
+                        shadowOffset: { height: 2, width: 0 },
+                    },
+                ]}
+                disabled={isSelectionEmpty}
+            >
                 <Text style={styles.applyButtonText}>Застосувати</Text>
             </Button>
         </View>

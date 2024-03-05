@@ -1,4 +1,4 @@
-import { ModalProps, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import Button from "../Button";
 import { useState } from "react";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -10,40 +10,50 @@ type PropsType = {
     Component: () => React.JSX.Element
 }
 
-// Припустимо, у нас є функціональний компонент FilterOptions
 const FilterOption = ({ name, onPress, Component }: PropsType) => {
     const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
     const toggleBottomSheet = () => setIsBottomSheetVisible((prev) => !prev);
-    // const toggleBottomSheet = () => setIsBottomSheetVisible(false);
     return (
-        <Button onPress={toggleBottomSheet} >
-            <View style={styles.container}>
-                <Text > {name} </Text>
+        <>
+            <Button onPress={toggleBottomSheet} style={styles.button} containerStyle={styles.buttonContainer} >
+                <Text style={styles.text}> {name} </Text>
                 <MaterialIcons style={styles.icon} name={'keyboard-arrow-down'} size={15} />
-            </View>
-
-            <BottomSheet style={{backgroundColor: '#EDE7F6'}} isVisible={isBottomSheetVisible} onDismiss={toggleBottomSheet}>
-                <Component  />
+            </Button>
+            <BottomSheet style={{ backgroundColor: '#EDE7F6' }} isVisible={isBottomSheetVisible} onDismiss={toggleBottomSheet}>
+                <Component />
             </BottomSheet>
-        </Button>
+        </>
+
     );
 };
 
-// Додамо стилі для компонента фільтрів
-const styles = StyleSheet.create({ 
-    container: {
-        maxHeight: 40,
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-
-        paddingHorizontal: 5,
-        paddingVertical: 2,
+const styles = StyleSheet.create({
+    button: {
         borderWidth: 1,
-        borderRadius: 15,
+        borderColor: "rgba(104, 58, 183, 0.2)",
+        borderRadius: 5,
+        backgroundColor: "#EDE7F6",
+
+        paddingHorizontal: 5, // Додаємо горизонтальний падінг
+        
+        justifyContent: "center", // Вирівнюємо текст та іконку по різних кінцях кнопки
+        alignItems: "center",
+
+        elevation: 3, // Легке збільшення тіні для кращого візуального ефекту
+    },
+    buttonContainer: {
+        flexDirection: "row",
+        alignItems: "center",
 
     },
+    text: {
+        fontSize: 14,
+        color: "#673AB7",
+        flex: 1,
+    },
     icon: {
-        // marginTop:5,
+        color: "#673AB7",
+        marginLeft: 8, // Додано відступ зліва для іконки
     }
 });
 

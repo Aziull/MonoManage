@@ -37,8 +37,14 @@ const AccountsList = ({ accounts, title, containerStyle, update, selectedIds }: 
                 padding: 10,
                 borderRadius: 10,
                 marginBottom: 10,
+
+                elevation: 2,
+                shadowOpacity: 0.1,
+                shadowRadius: 3,
+                shadowOffset: { height: 2, width: 0 },
             },
-            containerStyle
+            containerStyle,
+
         ]}>
         <View style={{
             flexDirection: 'row',

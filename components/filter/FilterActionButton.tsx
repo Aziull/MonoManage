@@ -22,14 +22,30 @@ const FilterActionButton: React.FC<PropsType> = ({ onPress, title }) => {
 
 const styles = StyleSheet.create({
     filters: {
-        borderWidth: 1,
-        borderRadius: 8,
-        borderColor: "#512DA8",
-
-        backgroundColor: "#522da8e",
+        flex: 1,
+        backgroundColor: '#EDE7F5',
 
         paddingVertical: 3,
         paddingHorizontal: 10,
+
+        borderWidth: 1,
+        borderColor: "rgba(104, 58, 183, 0.4)",
+        borderRadius: 8, 
+        alignItems: 'center',
+        justifyContent: 'center', 
+
+        marginRight: 5,
+
+        elevation: 2,
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        shadowOffset: { height: 2, width: 0 },
+
+    },
+    text: {
+        fontSize: 16,
+        fontWeight: '600', // Збільшуємо вагу шрифту для кращої видимості
+        color: '#512DA8', // Використовуємо основний колір для тексту
     }
 });
 

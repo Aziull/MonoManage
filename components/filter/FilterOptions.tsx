@@ -29,7 +29,7 @@ const FilterOptions = ({ visible }: { visible: boolean }) => {
         outputRange: ['0%', !isKeyboard ? '7%' : '12%'],
     });
     return (
-        <Animated.ScrollView horizontal contentContainerStyle={[styles.filterContainer]} style={[{ height: interpolatedHeight }]}>
+        <Animated.ScrollView keyboardShouldPersistTaps="always" horizontal contentContainerStyle={[styles.filterContainer]} style={[{ height: interpolatedHeight }]}>
             {filters.map((filter, index) => (
                 <FilterOption key={index} name={filter.name} onPress={filter.onPress} Component={filter.Component} />
             ))}
