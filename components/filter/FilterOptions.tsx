@@ -3,12 +3,13 @@ import FilterOption from "./filterOption";
 import Timeframe from "./criteria/Timeframe";
 import { useEffect, useRef } from "react";
 import { useKeyboardVisible } from "../../hook/useKeyboardVisible";
+import Accounts from "./criteria/accounts/Accounts";
 
 
 const filters = [
-    { name: "За категоріями", onPress: () => { }, Component: Timeframe, apply: () => { } },
-    { name: "За акаунтами", onPress: () => { }, Component: Timeframe },
-    { name: "За датою", onPress: () => { }, Component: Timeframe }
+    { name: "За періодом", onPress: () => { }, Component: Timeframe },
+    { name: "За рахунками", onPress: () => { }, Component: Accounts },
+    // { name: "За категоріями", onPress: () => { }, Component: Timeframe, apply: () => { } },
 ]
 
 const FilterOptions = ({ visible }: { visible: boolean }) => {

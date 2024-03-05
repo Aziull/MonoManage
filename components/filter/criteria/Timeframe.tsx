@@ -88,7 +88,7 @@ const Timeframe = () => {
     }
     return (
         <View style={{ alignItems: 'center' }}>
-            <Text style={styles.headerText}>Період часу</Text>
+            <Text style={styles.headerText}>Період</Text>
             <View style={styles.timeContainer}>
                 <Button style={styles.dateSelect} onPress={() => setIsShowModal(true)}>
                     <Text style={styles.label}>Від</Text>
