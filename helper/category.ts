@@ -9,6 +9,12 @@ interface ICategyIconsByMcc {
     [key: string]: string;
 }
 
+interface Category {
+    id: string; // Унікальний ідентифікатор категорії
+    name: string; // Назва категорії
+    mcc?: number[]; // Список MCC, асоційованих з категорією
+}
+
 
 const categyIconsByMccGroup: ICategyIconsByMccGroup = {
     'AS': 'agriculture',
@@ -41,34 +47,53 @@ const categyIconsByMcc: ICategyIconsByMcc = {
     "5993": "smoke-free",
     "7997": "sports"
 }
-type MccType = { 
-    mcc: string;
-    group: {
-        type: string;
-        description: {
-            uk: string;
-            en: string;
-            ru: string;
-        };
-    };
-    fullDescription: {
-        uk: string;
-        en: string;
-        ru: string;
-    };
-    shortDescription: {
-        uk: string;
-        en: string;
-        ru: string;
-    };
-} | undefined
 
-export const Category = {
+type MccType = {
+    mcc: string;
+    group: Group;
+    fullDescription: Description;
+    shortDescription: Description;
+} | undefined;
+
+interface Group {
+    type: string;
+    description: Description;
+}
+interface Description {
+    uk: string;
+    en: string;
+    ru: string;
+}
+
+const categories = {
+    income: mccJSON.map(mcc => {
+        return {
+            mcc: [mcc.mcc],
+            group: {
+                type: mcc.group.type,
+                description: mcc.group.description.uk,
+            },
+            description: mcc.shortDescription.uk
+        }
+
+    }),
+    expense: [
+        {
+            mcc: [''],
+            group: {
+                type: '',
+                description: '',
+            },
+            description: 'Зарплата'
+        }
+    ]
+}
+
+export const CategoryHelper = {
     getCategryIconByMcc: (mcc: string): string | undefined => {
 
         const data: MccType = mccJSON.find(el => el['mcc'] == mcc);
 
-        console.log(data);
 
         if (!data) return 'help-outline';
 
@@ -81,5 +106,12 @@ export const Category = {
         } else {
             return 'defaultIcon';
         }
+    },
+    getAllByType: (type: 'income' | 'expense') => {
+        return categories[type];
+    },
+    byMcc: (mcc: string) => {
+        return mccJSON.find(el => el.mcc == mcc)
     }
+
 } 
