@@ -1,44 +1,61 @@
-
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native"
-import Layout from "../components/Layout"
-import Button from "../components/Button";
-import { AppDispatch } from "../store";
-import { useDispatch } from "react-redux";
-import { createUser } from "../features/user/userSlice";
-import { getUserAsync } from "../features/user/thunks";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { SignInProps } from "../navigation/types";
-
-
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Image, StyleSheet, Text, View } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { useDispatch } from 'react-redux';
+import Layout from '../components/Layout';
+import { getUserAsync } from '../features/user/thunks';
+import { SignInProps } from '../navigation/types';
+import { AppDispatch } from '../store';
+import Button from '../components/button/Button';
 const SignIn: React.FC<SignInProps> = ({ navigation }) => {
     const dispatch: AppDispatch = useDispatch();
-    const handleLoginWithoutBank = () => {
-        dispatch(getUserAsync())
+    const [loading, setLoading] = useState(false);
+
+    const handleLoginWithoutBank = async () => {
+        setLoading(true);
+        try {
+            await dispatch(getUserAsync());
+        } catch (error) {
+            Alert.alert("Error", "Failed to login without bank.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleLoginWithMonobank = () => {
         navigation.navigate('WebScreen', { url: 'https://api.monobank.ua/' });
     };
-
     return (
         <Layout style={styles.container}>
-            <Text style={styles.title}>Виберіть спосіб входу</Text>
-            <Pressable style={({ pressed }) => [
-                styles.button,
-                { backgroundColor: pressed ? '#512DA8' : '#7e47ff' },
-                styles.shadow
-            ]}
-                onPress={handleLoginWithoutBank}>
-                <Text style={styles.buttonText}>Увійти без банку</Text>
-            </Pressable>
-            <Pressable style={({ pressed }) => [
-                styles.button,
-                { backgroundColor: pressed ? '#512DA8' : '#7e47ff' },
-                styles.shadow
-            ]}
-                onPress={handleLoginWithMonobank}>
-                <Text style={styles.buttonText}>Увійти з Monobank</Text>
-            </Pressable>
+            <Image source={require('../assets/logo.png')} style={styles.logo} />
+            <Text style={styles.title}>Вхід</Text>
+            <Text style={styles.subtitle}>Оберіть спосіб входу:</Text>
+
+            {loading ? (
+                <ActivityIndicator size="large" color="#fff" />
+            ) : (
+                <View style={styles.actionsContainer}>
+                    <Button
+                        onPress={handleLoginWithMonobank}
+                        width='full'
+                        size='lg'
+                        style={styles.shadow}
+                        icon={<Icon name="credit-card" size={20} color="#fff" />}
+                    >
+                        Увійти з Monobank
+                    </Button>
+                    <Button
+                        onPress={handleLoginWithoutBank}
+                        variant='secondary'
+                        width='full'
+                        style={styles.shadow}
+                        icon={<Icon name="user" size={20} color="#333" />}
+                    >
+                        Увійти без банку
+                    </Button>
+                </View>
+            )}
+
         </Layout>
     );
 };
@@ -49,23 +66,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
+        backgroundColor: '#f7f7f7',
+    },
+    actionsContainer: {
+        width: '100%',
+        rowGap: 15,
+    },
+    logo: {
+        width: 150,
+        height: 150,
+        marginBottom: 20,
     },
     title: {
         fontWeight: 'bold',
         color: '#673AB7',
-        fontSize: 24,
+        fontSize: 32,
+        marginBottom: 10,
+    },
+    subtitle: {
+        fontSize: 18,
+        color: '#999999',
         marginBottom: 20,
     },
     button: {
-        width: '100%',
-        padding: 15,
-        borderRadius: 5,
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    buttonText: {
-        color: '#ffffff',
-        fontSize: 18,
+        flexDirection: 'row',
     },
     shadow: {
         shadowColor: '#000',
@@ -79,5 +103,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default SignIn
-
+export default SignIn;
