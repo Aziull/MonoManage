@@ -1,8 +1,11 @@
 import { createContext, useContext, useEffect, useReducer } from "react";
-import { getTransactions } from "../api/monoApi";
 import { useAsyncStorage } from "@react-native-async-storage/async-storage";
-import { useAuthContext } from "./AuthContext";
 import { Transaction } from "../types/transaction";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
+import { useGetBankAccountTransactionsQuery } from "../features/transaction/api";
+import { BankList } from "../features/api/config";
+import { Account, User } from "../features/user/types";
 
 const ADD_ITEM = 'ADD_ITEM';
 const REMOVE_ITEM = 'REMOVE_ITEM';
@@ -91,7 +94,23 @@ const initialState: StateType = {
 const IgnoredTransactionsContext = createContext(null);
 
 export const IgnoredTransactionsProvider = ({ children }) => {
-    const { isAuth } = useAuthContext();
+    const { user }: { user: User } = useSelector((state: RootState) => state.auth);
+    const { authToken } = useSelector((state: RootState) => state.authToken);
+    const today = new Date();
+    const from = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    // const { data: transactions } = useGetBankAccountTransactionsQuery({
+    //     bankName: BankList.monobank,
+    //     requestPath: 'clientInfo',
+    //     accountId: 0,
+    //     from: from.getTime(),
+    //     to: today.getTime()
+    // }, {
+    //     skip: !authToken || !user.bankAccounts.length
+    // });
+
+
+
     const [state, dispatch] = useReducer(reducer, initialState);
     const { getItem, setItem } = useAsyncStorage('ignored-transactions');
     const { getItem: getCreated, setItem: setCreated } = useAsyncStorage('created-transactions');
@@ -100,7 +119,7 @@ export const IgnoredTransactionsProvider = ({ children }) => {
         state: state,
         addToIgnored: async (transaction: Transaction) => {
             const json: string = await getItem();
-            const data: Transaction[] = JSON.parse(json)  || [];
+            const data: Transaction[] = JSON.parse(json) || [];
 
             const newData = JSON.stringify([...data, transaction])
             await setItem(newData)
@@ -127,32 +146,7 @@ export const IgnoredTransactionsProvider = ({ children }) => {
         }
     };
 
-    useEffect(() => {
 
-        const init = async () => {
-            if (!isAuth) return;
-            const account = 0;
-            const today = new Date();
-            const from = new Date(today.getFullYear(), today.getMonth(), 1);
-
-            const transactions: Transaction[] = await getTransactions(account, from, today);
-            const customJSON = await getCreated();
-            const storageDataJson = await getItem();
-
-            const storageData = JSON.parse(storageDataJson)  || [];
-
-            const custonData: Transaction[] = JSON.parse(customJSON) || [];
-
-            const filteredTransactions = [...custonData, ...transactions].filter(
-                (transaction) => !storageData.some((data) => data.id === transaction.id)
-            );
-            dispatch(setTransactions(filteredTransactions));
-            dispatch(setData(storageData))
-        }
-
-        init();
-    }, [isAuth])
-    
     return <IgnoredTransactionsContext.Provider value={contextValue}>{children}</IgnoredTransactionsContext.Provider>;
 };
 

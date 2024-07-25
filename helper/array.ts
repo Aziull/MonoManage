@@ -40,6 +40,6 @@ export const ArrayHelper = {
         } else {
             array.push(newItem); // Додаємо новий елемент, якщо такий не існує
         }
-        return array;
+        return [...array];
     }
 };

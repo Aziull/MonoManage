@@ -3,6 +3,7 @@ import { Transaction } from './types';
 import { transactionApi } from './api';
 import { addTransactionAsync, getTransactionsAsync, toggleIgnoreTransactionAsyncs, addBankTransactionsAsync } from './thunks';
 import Helper from '../../helper';
+import { TransactionModel } from '../../services/database';
 type StateType = {
   transactions: Transaction[]
   ignoredTransactionIds: string[]

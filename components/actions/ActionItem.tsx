@@ -1,44 +1,39 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
 
-type ActionProps = {
-    action: () => void,
-    actionIconName: string
+interface TransactionButtonProps {
+  iconName?: string;
+  color: string;
+  title?: string;
+  onPress: () => void;
+  style?: object;
 }
 
-const Action = ({action, actionIconName}: ActionProps) => {
-  const navigation = useNavigation<any>();
+const TransactionButton: React.FC<TransactionButtonProps> = ({ iconName, color, title, onPress, style }) => {
 
   return (
-      <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          {
-            backgroundColor: pressed ? '#6c757d' : '#343a40',
-          },
-        ]}
-        onPress={action}
-      >
-        <MaterialIcons name={actionIconName} size={30} style={styles.icon} />
-      </Pressable>
+    <TouchableOpacity style={[styles.button, {backgroundColor: color}, style]} onPress={onPress}>
+      {iconName && <MaterialIcons name={iconName} size={28} color="#FFF" />}
+      {title && <Text style={styles.buttonText}>{title}</Text>}
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-    padding: 2,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 10,
+    justifyContent: 'center',
+    padding: 10,
+    borderRadius: 20,
+    elevation: 3,
+    margin: 5, // Додано трохи відступу для кращого вигляду
   },
-  icon: {
-    color: 'white',
+  buttonText: {
+    color: '#FFF',
+    marginLeft: 5,
   },
 });
 
-export default Action;
+export default TransactionButton;

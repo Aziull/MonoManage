@@ -83,6 +83,7 @@ const styles = StyleSheet.create({
         padding: 16,
         paddingTop: 10,
         paddingBottom: 0,
+        maxHeight: 550,
     },
     draggableIndicator: {
         width: 30,

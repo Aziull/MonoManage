@@ -1,4 +1,8 @@
-import { Database } from 'expo-sqlite';
+import { Database } from 'expo-sqlite/legacy';
+// Додати адміністратора
+const insertAdmin = `
+INSERT INTO Users (id, name) VALUES ('admin', 'admin');
+`;
 
 const createUsersTable = `
 CREATE TABLE IF NOT EXISTS Users (
@@ -7,10 +11,6 @@ CREATE TABLE IF NOT EXISTS Users (
 );
 `;
 
-// Додати адміністратора
-const insertAdmin = `
-INSERT INTO Users (id, name) VALUES ('admin', 'admin');
-`;
 
 const createAccountsTable = `
 CREATE TABLE IF NOT EXISTS Accounts (
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS Accounts (
 
 // Додати адміністратора
 const insertAccount = `
-INSERT INTO Accounts (id, name, balance, userId, type) VALUES ('cash', 'Готівка', 0, 'admin', 'custom');
+INSERT INTO Accounts (id, name, balance, userId, type) VALUES ('cash', 'Готівка', 0, 'admin', 'cash');
 `;
 
 
@@ -81,7 +81,6 @@ export const migrate = (db: Database) => {
       if (rows.length === 0) {
         // Адміністратор не знайдений, додати його
         tx.executeSql(insertAdmin);
-        tx.executeSql(insertAccount);
       }
     });
     tx.executeSql('SELECT * FROM Accounts WHERE id = ?', ['cash'], (_, { rows }) => {

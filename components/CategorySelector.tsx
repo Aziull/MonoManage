@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, FlatList, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { CategoryHelper } from '../helper/category';
 import Button from './Button';
+import BottomSheet from '../modal/BottomSheet';
+import { colors } from './TransactionTypeSwitcher';
+import Search from './Search';
 
 
 const { width } = Dimensions.get('window'); // Отримуємо ширину екрану
@@ -15,20 +18,21 @@ type CategorySelectorProps = {
 
 const CategorySelector: React.FC<CategorySelectorProps> = ({ type, value, onSelectCategory }) => {
     const [modalVisible, setModalVisible] = useState(false);
-
+    const [query, setQuery] = useState('');
+    const { width } = useWindowDimensions()
     useEffect(() => {
         if (!value) {
             setModalVisible(false);
         }
     }, [value]);
 
-    const categories = CategoryHelper.getAllByType(type);
-
+    let categories = CategoryHelper.getAllByType(type);
+    categories = categories.filter(el => el.description.toLocaleLowerCase().includes(query.toLocaleLowerCase()))
     useEffect(() => {
         onSelectCategory(categories[0].description)
     }, [])
     return (
-        <View>
+        <View style={{ flex: 1 }}>
             <Button containerStyle={{
                 flexDirection: 'row',
                 columnGap: 10,
@@ -58,55 +62,85 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ type, value, onSele
                 </View>
             </Button>
 
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+            <BottomSheet
+                isVisible={modalVisible}
+                onDismiss={() => setModalVisible(false)}
             >
-                <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)} >
+                <View>
                     <FlatList
-                    scrollEnabled
+                        invertStickyHeaders
+                        scrollEnabled
                         data={categories}
+
+                        showsVerticalScrollIndicator
+                        initialNumToRender={20}
+                        
+                        style={{
+                            height: 400,
+                            backgroundColor: '#eee',
+                            marginHorizontal: -16,
+                        }}
                         contentContainerStyle={styles.modalView}
+                        indicatorStyle='white'
                         renderItem={({ item }) => (
-                            <TouchableOpacity
-                                
-                                style={styles.categoryItem}
+                            <Button
+                                style={{
+                                    padding: 0
+                                }}
+                                containerStyle={styles.categoryItem}
                                 onPress={() => {
                                     onSelectCategory(item.description);
                                     setModalVisible(false);
                                 }}
                             >
-                                <Text style={styles.categoryItemText}>{item.description}</Text>
-                            </TouchableOpacity>
+                                <View style={{
+                                    backgroundColor: 'rgba(82, 45, 168, 1)',
+                                    height: 70,
+                                    aspectRatio: 1,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+
+                                    borderRadius: 15,
+                                }}>
+                                    <MaterialIcons name={'circle'} color={"#eee"} size={50} />
+                                </View>
+                                <Text numberOfLines={1} style={styles.categoryItemText}>{item.description}</Text>
+                            </Button>
                         )}
                         keyExtractor={(item) => JSON.stringify(item)}
                         numColumns={3}
                     />
-                </Pressable>
-            </Modal>
+                </View>
+                <View>
+                    <Search
+                        style={{
+                        }}
+                        value={query}
+                        handleValueChange={(text) => setQuery(text)}
+                    />
+                </View>
+
+
+
+            </BottomSheet>
         </View>
     );
 };
 const styles = StyleSheet.create({
 
-    modalOverlay: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
     modalView: {
-        width: width * 0.9, // Ширина майже на весь екран
-        aspectRatio: 1,
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 35,
         alignItems: 'center',
+        marginHorizontal: -16
     },
     categoryItem: {
-
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1,
+        margin: 2,
+        width: width * 0.315,
+        height: width * 0.315,
+        padding: 0,
     },
     categoryItemText: {
         color: '#512DA8',

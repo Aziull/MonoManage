@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Button from "../../Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
 import DatePickerModal, { Range as RangeModal } from "../../../modal/DatePickerModal";
 import { useDispatch, useSelector } from "react-redux";
@@ -52,8 +52,15 @@ const ranges: Range[] = [
 ];
 
 const Timeframe = () => {
-    const [selectedRange, setSelectedRange] = useState<Range | null>(null);
-
+    const [selectedRange, setSelectedRange] = useState<Range | null>(ranges[0]);
+    const { dateRange } = useSelector((state: RootState) => state.filters)
+    useEffect(() => {
+        setSelectedRange(prev => ({
+            ...prev,
+            fromDate: dateRange.start,
+            toDate: dateRange.end,
+        }) as Range)
+    }, [])
     const [isShowModal, setIsShowModal] = useState(false)
 
     const dispatch = useDispatch();

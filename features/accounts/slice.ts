@@ -29,7 +29,7 @@ const accountsSlice = createSlice({
                 state.error = null;
             })
             .addCase(getAccounts.fulfilled, (state, action) => {
-                state.accounts = action.payload;
+                state.accounts = action.payload;                
                 state.loading = false;
             })
             .addCase(getAccounts.rejected, (state, action) => {

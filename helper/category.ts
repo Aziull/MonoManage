@@ -1,4 +1,4 @@
-import mccJSON from '../assets/mcc.json'
+import mccJSON from '../assets/mccGroupedUk.json';
 
 // Визначення типу для об'єкта з ключами типу string і значеннями типу string
 interface ICategyIconsByMccGroup {
@@ -7,12 +7,6 @@ interface ICategyIconsByMccGroup {
 
 interface ICategyIconsByMcc {
     [key: string]: string;
-}
-
-interface Category {
-    id: string; // Унікальний ідентифікатор категорії
-    name: string; // Назва категорії
-    mcc?: number[]; // Список MCC, асоційованих з категорією
 }
 
 
@@ -53,7 +47,7 @@ type MccType = {
     group: Group;
     fullDescription: Description;
     shortDescription: Description;
-} | undefined;
+}
 
 interface Group {
     type: string;
@@ -65,34 +59,60 @@ interface Description {
     ru: string;
 }
 
-const categories = {
-    income: mccJSON.map(mcc => {
-        return {
-            mcc: [mcc.mcc],
-            group: {
-                type: mcc.group.type,
-                description: mcc.group.description.uk,
-            },
-            description: mcc.shortDescription.uk
-        }
-
-    }),
-    expense: [
-        {
-            mcc: [''],
-            group: {
-                type: '',
-                description: '',
-            },
-            description: 'Зарплата'
-        }
-    ]
+interface Category {
+    mcc: string[];
+    group: {
+        type: string;
+        description: string;
+    };
+    description: string;
 }
+const manualIncomeCategories: Category[] = [
+    {
+        mcc: [],
+        group: { type: 'income', description: 'Зарплата' },
+        description: 'Зарплата'
+    },
+    // Додайте інші категорії за потребою
+];
+const groupByDescription = (mccData: MccType[]): Category[] => {
+    const grouped = new Map<string, Category>();
+
+    mccData.forEach(mcc => {
+        const description = mcc.shortDescription.uk;
+        if (grouped.has(description)) {
+            const category = grouped.get(description);
+            if (category && !category.mcc.includes(mcc.mcc)) {
+                category.mcc.push(mcc.mcc);
+            }
+        } else {
+            grouped.set(description, {
+                mcc: [mcc.mcc],
+                group: {
+                    type: mcc.group.type,
+                    description: mcc.group.description.uk,
+                },
+                description,
+            });
+        }
+    });
+
+    return Array.from(grouped.values());
+};
+
+const categories: {
+    income: Category[];
+    expense: Category[];
+} = {
+    income: manualIncomeCategories,
+    expense: mccJSON,
+};
 
 export const CategoryHelper = {
     getCategryIconByMcc: (mcc: string): string | undefined => {
 
-        const data: MccType = mccJSON.find(el => el['mcc'] == mcc);
+        const data: Category | undefined = mccJSON.find(el => el['mcc'].includes(mcc));
+        console.log(mcc);
 
 
         if (!data) return 'help-outline';
@@ -111,7 +131,7 @@ export const CategoryHelper = {
         return categories[type];
     },
     byMcc: (mcc: string) => {
-        return mccJSON.find(el => el.mcc == mcc)
+        return mccJSON.find(el => el.mcc.includes(mcc))
     }
 
 } 

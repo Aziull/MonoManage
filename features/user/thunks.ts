@@ -36,8 +36,7 @@ export const fetchAndSaveBankAccounts = createAsyncThunk(
 export const getUserAsync = createAsyncThunk(
     'auth/getUserAsync',
     async (_, { }) => {
-        const condition = `id = 'admin'`;
-        const [user]: UserEntity[] = await UserModel.selectAll(condition)
+        const [user]: UserEntity[] = await UserModel.selectAll("id = 'admin'")
         return { user }
     }
 )

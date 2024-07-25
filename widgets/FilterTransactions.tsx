@@ -17,7 +17,7 @@ const FilterTransactions = () => {
             <FilterOptions visible={showFilters} />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                 <Search onSearch={() => { }} onFocusChange={() => { }} />
-                <FilterActionButton title={showFilters ? 'cховати фільтри' : 'показати фільтри'} onPress={handleActionButtonPress} />
+                <FilterActionButton iconName={showFilters ? 'keyboard-arrow-down' : 'keyboard-arrow-up'} title={'фільтри'} onPress={handleActionButtonPress} />
             </View>
         </View>
 

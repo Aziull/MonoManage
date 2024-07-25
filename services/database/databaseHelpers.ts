@@ -1,4 +1,4 @@
-import { Database } from "expo-sqlite";
+import { Database } from "expo-sqlite/legacy";
 import { BaseModel } from "./entities";
 
 export const executeSqlAsync = (db: Database, sql: string, params: any[] = []): Promise<any> =>

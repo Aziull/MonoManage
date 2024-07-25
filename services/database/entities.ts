@@ -10,7 +10,7 @@ export interface Account extends BaseModel {
     name: string;
     balance: number; // REAL в SQLite відповідає number в TypeScript
     userId: string; // Зв'язок з таблицею Users
-    type: string; // Тип рахунку (custom або bank)
+    type: 'cash' | 'bank'; // Тип рахунку (cash або bank)
     updatedAt: number;
 }
 
@@ -22,8 +22,7 @@ export interface Transaction extends BaseModel {
     currencyCode?: number;
     description: string;
     hold?: boolean;
-    id: string;
-    mcc?: number;
+    mcc?: string;
     operationAmount?: number;
     originalMcc?: number;
     receiptId?: string;

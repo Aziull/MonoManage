@@ -29,6 +29,7 @@ export const addTransactionAsync = createAsyncThunk(
         try {
             // Додавання транзакції в базу даних
             await TransactionModel.insertOrUpdate(mapToEntity(transaction))
+            const tt = await TransactionModel.selectAll()            
             // Повертаємо транзакцію для оновлення стану Redux, якщо успішно
             return transaction;
         } catch (error) {

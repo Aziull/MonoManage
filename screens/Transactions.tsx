@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, Text, KeyboardAvoidingView, Platform, Pressable } from 'react-native'
+import { View, StyleSheet, Text, KeyboardAvoidingView, Platform, Pressable, Alert } from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import Layout from '../components/Layout';
 import Grouped from '../components/transactionList/Grouped';
@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToIgnored } from '../features/transaction/slice';
 import { User } from '../features/user/types';
 import { BankList } from '../features/api/config';
-import { addBankTransactionsAsync } from '../features/transaction/thunks';
+import { addBankTransactionsAsync, getTransactionsAsync } from '../features/transaction/thunks';
 import { fetchAndSaveBankAccounts } from '../features/user/thunks';
 import Helper from '../helper';
 import Search from '../components/transactionSearch/search';
@@ -49,6 +49,9 @@ const Transactions = () => {
         })
     }, [user, authToken, accountsId])
 
+    useEffect(() => {
+        dispatch(getTransactionsAsync())
+    }, []) 
 
     const { transactions } = useSelector((state: RootState) => state.transaction)
 
@@ -56,7 +59,7 @@ const Transactions = () => {
         description: description,
         timeframe: dateRange,
         accountsId: accountsId,
-    })
+    }).sort((a,b) => b.time - a.time)
 
     const stats = Helper.Tranasctions.generateStatistics(filtered)
     const remove = async (transaction: Transaction) => {
@@ -67,6 +70,8 @@ const Transactions = () => {
         dispatch(logout())
         dispatch(clearAuthToken())
     }
+    //console.log(filtered);
+    
 
     return (
         <Layout >
@@ -118,7 +123,6 @@ const styles = StyleSheet.create({
         color: '#512DA8',
     },
     container: {
-
         flex: 1,
         backgroundColor: '#F5F5F5', // Світлий фон для контейнера
         margin: 10, // Відступ від країв екрану

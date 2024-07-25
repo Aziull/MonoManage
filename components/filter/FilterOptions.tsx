@@ -1,4 +1,4 @@
-import { Animated, ScrollView, StyleSheet } from "react-native";
+import { Animated, Dimensions, ScrollView, StyleSheet } from "react-native";
 import FilterOption from "./filterOption";
 import Timeframe from "./criteria/Timeframe";
 import { useEffect, useRef } from "react";
@@ -15,7 +15,6 @@ const filters = [
 const FilterOptions = ({ visible }: { visible: boolean }) => {
     const heightAnim = useRef(new Animated.Value(0)).current;
 
-    const isKeyboard = useKeyboardVisible();
     useEffect(() => {
         Animated.timing(heightAnim, {
             toValue: visible ? 1 : 0,
@@ -26,18 +25,19 @@ const FilterOptions = ({ visible }: { visible: boolean }) => {
 
     const interpolatedHeight = heightAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: ['0%', !isKeyboard ? '7%' : '12%'],
-    });
+        outputRange: [0, 40],
+    })
     return (
-        <Animated.ScrollView keyboardShouldPersistTaps="always" horizontal contentContainerStyle={[styles.filterContainer]} style={[{ height: interpolatedHeight }]}>
-            {filters.map((filter, index) => (
-                <FilterOption key={index} name={filter.name} onPress={filter.onPress} Component={filter.Component} />
-            ))}
-        </Animated.ScrollView>
+        <Animated.ScrollView keyboardShouldPersistTaps="always" horizontal contentContainerStyle={[styles.filterContainer]} style={[{ height: interpolatedHeight }]} >
+            {
+                filters.map((filter, index) => (
+                    <FilterOption key={index} name={filter.name} onPress={filter.onPress} Component={filter.Component} />
+                ))
+            }
+        </Animated.ScrollView >
     );
 };
 
-// Додамо стилі для компонента фільтрів
 const styles = StyleSheet.create({
     filterContainer: {
         padding: 5,

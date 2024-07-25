@@ -1,32 +1,38 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { StyleSheet } from 'react-native';
 
-import { AuthProvider, useAuthContext } from './context/AuthContext';
 import AppNavigator from './navigation/AppNavigation';
-import { NavigationContainer } from '@react-navigation/native';
-import { IgnoredTransactionsProvider } from './context/TransactionsContext';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { RenamedProvider } from './context/RenamedContext';
-import * as Sentry from '@sentry/react-native';
-
-Sentry.init({
-  dsn: 'https://c92d0e494d983ee545c781cfbc2c89d1@o4506644392968192.ingest.sentry.io/4506644396179456',
-});
+import { ActionSheetProvider } from './provider/ActionSheetProvider';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistor, store } from './store';
+import { initializeDatabase } from './services/database';
+import { CustomLightTheme } from './theme';
 
 
 export default function App() {
+  useEffect(() => {
+    (async () => {
+      await initializeDatabase();
+    })();
+  }, [])
 
   return (
-    <NavigationContainer>
-      <AuthProvider>
-        <IgnoredTransactionsProvider>
-          <RenamedProvider>
-            <AppNavigator />
-          </RenamedProvider>
-        </IgnoredTransactionsProvider>
-      </AuthProvider>
-    </NavigationContainer >
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <NavigationContainer theme={CustomLightTheme}>
+          <ActionSheetProvider>
+            <RenamedProvider>
+              <AppNavigator />
+            </RenamedProvider>
+          </ActionSheetProvider>
+        </NavigationContainer >
+      </PersistGate>
+    </Provider>
 
   );
 }

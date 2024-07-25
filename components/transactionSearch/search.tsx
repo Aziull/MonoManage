@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { setDescription } from '../../features/filter/slice';
+import Search from '../Search';
 
 type SearchProps = {
     placeholder?: string;
@@ -12,7 +13,7 @@ type SearchProps = {
     onFocusChange: Function;
 };
 
-const Search: React.FC<SearchProps> = ({ placeholder = "Пошук", onSearch, onFocusChange }) => {
+const TransactionSearch: React.FC<SearchProps> = ({ placeholder = "Пошук", onSearch, onFocusChange }) => {
     const description = useSelector((state: RootState) => state.filters.description);
     const dispatch = useDispatch();
 
@@ -36,24 +37,12 @@ const Search: React.FC<SearchProps> = ({ placeholder = "Пошук", onSearch, o
     }, [])
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity onPress={handleSearch} style={styles.iconContainer}>
-                <Icon style={styles.icon} name="search" size={22} color="#000" />
-            </TouchableOpacity>
-            <TextInput
-                ref={inputRef}
-                style={styles.input}
-                placeholder={placeholder}
-                value={description}
-                onChangeText={handleDescriptionChange}
-                onSubmitEditing={handleSearch}
-            />
-            {!!description.length && (
-                <TouchableOpacity onPress={() => handleDescriptionChange('')} style={styles.closeContainer}>
-                    <Icon style={styles.icon} name="close" size={15} color="#000" />
-                </TouchableOpacity>
-            )}
-        </View>
+        <Search
+            value={description}
+            handleValueChange={handleDescriptionChange}
+            handleSearch={handleSearch}
+            ref={inputRef}
+        />
     );
 };
 
@@ -87,4 +76,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Search;
+export default TransactionSearch;

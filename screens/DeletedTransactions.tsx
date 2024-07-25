@@ -2,7 +2,7 @@ import React from 'react'
 import { View, StyleSheet, Text, Button, FlatList } from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import Layout from '../components/Layout';
-import RenderItem from '../components/RenderItem';
+import RenderItem from '../components/transactionList/RenderItem';
 import { Transaction } from '../types/transaction';
 
 

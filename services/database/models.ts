@@ -1,4 +1,4 @@
-import { Database } from 'expo-sqlite';
+import { Database } from 'expo-sqlite/legacy';
 import { deleteRow, insertOrUpdate, selectAll } from './databaseHelpers';
 import { BaseModel } from './entities';
 

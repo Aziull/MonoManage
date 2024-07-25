@@ -9,7 +9,7 @@ import { baseApi } from '../features/api';
 const persistConfig = {
   key: 'root',
   storage: expoSecureStoreAdapter,
-  whitelist: ['authToken'], // Вказуємо, що зберігати лише auth редюсер
+  whitelist: ['authToken', 'filters'],
 };
 
 

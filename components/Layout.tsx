@@ -1,7 +1,5 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Підключення для використання навігації
-import secureStoreService from '../services/secureStoreService';
 
 type PropsType = {
   children: any;
@@ -19,7 +17,7 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     justifyContent: 'center',
     paddingTop: 40,
-    backgroundColor: '#0d2324',
+    backgroundColor: '#e4d6f8',
   },
 });
 

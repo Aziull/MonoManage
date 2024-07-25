@@ -1,26 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuthContext } from '../../context/AuthContext';
-import Action from './ActionItem';
+import TransactionButton from './ActionItem';
 
-const Actions = () => {
+const ButtonsContainer = () => {
   const navigation = useNavigation<any>();
-  const { signOut } = useAuthContext();
 
+  const [isListView, setIsListView] = useState(true); // Стан для відстеження відображення списку чи статистики
+
+  const toggleView = () => {
+    setIsListView(!isListView);
+  };
   return (
-    <View style={styles.container}>
-        <Action action={() => navigation.navigate('NewTransaction')} actionIconName='add' />
-        <Action action={signOut} actionIconName='logout' />
+    <View style={styles.buttonsContainer}>
+      <TransactionButton
+        iconName="add"
+        color="#9575CD"
+        onPress={() => navigation.navigate('NewTransaction', { type: 'income' })}
+      />
+
+      <TransactionButton
+        iconName={isListView ? "bar-chart" : "list"}
+        color="#4CAF50"
+        onPress={toggleView}
+        style={styles.wideButton}
+      />
+
+      <TransactionButton
+        iconName="remove"
+        color="#F8BBD0"
+        onPress={() => navigation.navigate('NewTransaction', { type: 'expense' })}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  buttonsContainer: {
     flexDirection: 'row',
-    justifyContent: "center",
+    justifyContent: 'space-around',
+    padding: 10,
+  },
+  wideButton: {
+    width: 100,
+    justifyContent: 'center',
   },
 });
 
-export default Actions;
+export default ButtonsContainer;

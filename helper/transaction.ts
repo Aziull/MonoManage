@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { Transaction } from "../features/transaction/types";
 import { GroupedTransactions, TransactionStatistics, TransactionSummary } from "./types";
 
@@ -44,7 +44,6 @@ export const TransactionHelper = {
         const transactionsToday = TransactionHelper.findTransactionsToday(transactions);
         return TransactionHelper.calculateTotalAmount(transactionsToday);
     },
-
     generateStatistics: (transactions: Transaction[]): TransactionStatistics[] => {
         const totalAmount = TransactionHelper.calculateTotalAmount(transactions);
         const today = dayjs().date();
@@ -71,4 +70,28 @@ export const TransactionHelper = {
             },
         ];
     },
+    createTransaction: (type: "income" | "expense", amount: string, description: string, date: Dayjs, accountId: string) => {
+        let error: null | string = null;
+
+        const convertByType = (type: "income" | "expense", coinValue: string | number) => {
+            const numValue = Number(amount) * 100;
+            return type === "income" ? numValue : -numValue;
+        }
+        const id = self.crypto.randomUUID();
+        if (!description.trim().length || !date || (!amount.trim.length && !Number(amount.trim()))) {
+            error = 'Не всі поля заповнені'
+        }
+
+        const transaction: Transaction = {
+            id,
+            amount: convertByType(type, amount),
+            description,
+            time: date.unix(),
+            deleted: false,
+            balance: 0,
+            accountId: accountId
+        }
+
+        return { transaction, error }
+    }
 };

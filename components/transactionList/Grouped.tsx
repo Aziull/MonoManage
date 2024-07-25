@@ -14,6 +14,7 @@ const Grouped = ({ transactions = [], actionFunc }: Props) => {
     const sections = Helper.Tranasctions.summarizeByDate(transactions);
     return (
         <SectionList
+        initialNumToRender={15}
             sections={sections}
             keyExtractor={(item) => item.id}
             renderItem={({ item, index, section }) => (

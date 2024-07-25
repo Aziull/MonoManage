@@ -1,4 +1,4 @@
-import * as SQLite from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite/legacy';
 import { migrate } from './migrations';
 import { createModel } from './models';
 import { Account, Transaction, User } from './entities';
