@@ -1,18 +1,17 @@
 //features/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { userApi } from './userApi';
 import { User } from './types';
 import { getUserAsync } from './thunks';
 
 interface AuthState {
   user: User | null;
-  isLoading: boolean;
-  error: string | null | undefined;
+  loading: boolean;
+  error: null | unknown;
 }
 
 const initialState: AuthState = {
   user: null,
-  isLoading: false,
+  loading: false,
   error: null,
 };
 
@@ -28,19 +27,23 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(getUserAsync.fulfilled, (state, action) => {
-      const { user } = action.payload;
-      state.user = {
-        id: user.id,
-        name: user.name,
-      }
-    });
-    builder.addMatcher(
-      userApi.endpoints.getBankAccounts.matchRejected,
-      (state, { payload }) => {
-        state.error = payload?.status.toString();
-      }
-    );
+    builder
+      .addCase(getUserAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getUserAsync.fulfilled, (state, { payload }) => {
+        const { user } = payload;
+        state.user = {
+          id: user.id,
+          name: user.name,
+        }
+        state.loading = false;
+      })
+      .addCase(getUserAsync.rejected, (state, { payload }) => {
+        state.loading = false;
+        state.error = payload;
+      })
   }
 });
 
