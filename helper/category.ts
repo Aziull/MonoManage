@@ -112,7 +112,7 @@ export const CategoryHelper = {
     getCategryIconByMcc: (mcc: string): string | undefined => {
 
         const data: Category | undefined = mccJSON.find(el => el['mcc'].includes(mcc));
-        console.log(mcc);
+  
 
 
         if (!data) return 'help-outline';
