@@ -3,8 +3,6 @@ import { AccountModel } from "../../services/database";
 import { mapToModel } from "./lib";
 import { Account as AccountEntity } from "../../services/database/entities";
 import { RootState } from "../../store";
-import { BankRequestArgs } from "../transaction/types";
-import { accountApi } from "./api";
 import { Account, CashAccountArgs } from "./types";
 
 export const getAccounts = createAsyncThunk(
@@ -13,7 +11,7 @@ export const getAccounts = createAsyncThunk(
         const { user } = (getState() as RootState).auth;
         if (!user) return rejectWithValue('User not exist');
         try {
-            const accounts: AccountEntity[] = await AccountModel.selectAll();
+            const accounts: AccountEntity[] = await AccountModel.selectAll(`userId = '${user.id}'`);
 
             return accounts.map(mapToModel);
         } catch (error) {
@@ -22,31 +20,17 @@ export const getAccounts = createAsyncThunk(
     }
 )
 
-
-export const fetchAndSaveBankAccounts = createAsyncThunk(
-    'accounts/fetchAndSave',
-    async (args: BankRequestArgs, { dispatch, getState, rejectWithValue }) => {
+export const updateAccountInDb = createAsyncThunk(
+    'accounts/updateInDb',
+    async (accounts: Account[], { getState, rejectWithValue }) => {
         const { user } = (getState() as RootState).auth;
-        const { authToken } = (getState() as RootState).authToken;
         if (!user) return rejectWithValue('User not exist');
-        if (!authToken) return rejectWithValue('authToken not exist');
-        try {
-            const accounts = await dispatch(accountApi.endpoints.getBankAccounts.initiate(args)).unwrap()
-            if (!accounts) return rejectWithValue('No data in response');
-
-            await AccountModel.insertOrUpdateMultiple(
-                accounts.map((account: Account): AccountEntity => ({ ...account, userId: user.id, type: "bank", updatedAt: Date.now() })),
-                (account: AccountEntity) => `id = '${account.id}'`
-            );
-
-            return accounts;
-        } catch (error) {
-            console.log('error', error);
-
-            return rejectWithValue('Error fetching data'); // Обробка помилки, якщо така виникає
-        }
+        await AccountModel.insertOrUpdateMultiple(
+            accounts.map((account: Account): AccountEntity => ({ ...account, userId: user.id, type: "bank", updatedAt: Date.now() })),
+            (account: AccountEntity) => `id = '${account.id}'`
+        );
     }
-);
+)
 
 export const createCashAccount = createAsyncThunk(
     'accounts/createCashAccount',

@@ -1,6 +1,7 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { createCashAccount, getAccounts } from "./thunks";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createCashAccount, getAccounts, updateAccountInDb } from "./thunks";
 import { Account } from "./types";
+import Helper from "../../helper";
 
 type StateType = {
     accounts: Account[]
@@ -17,7 +18,14 @@ const initState: StateType = {
 const accountsSlice = createSlice({
     name: 'account',
     initialState: initState,
-    reducers: {},
+    reducers: {
+        updateAccounts: (state, { payload: accounts }: PayloadAction<Account[]>) => {
+            accounts.forEach(transaction => {
+                const predicate = (item: Account) => item.id === transaction.id;
+                state.accounts = Helper.Array.upsert(state.accounts, transaction, predicate);
+            });
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(getAccounts.pending, (state) => {
@@ -44,9 +52,8 @@ const accountsSlice = createSlice({
                 state.loading = false;
                 state.accounts.push(action.payload);
             })
-
     },
 })
 
-export const { } = accountsSlice.actions;
+export const { updateAccounts } = accountsSlice.actions;
 export default accountsSlice.reducer;
