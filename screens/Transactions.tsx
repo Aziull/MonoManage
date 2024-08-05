@@ -12,46 +12,70 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToIgnored } from '../features/transaction/slice';
 import { User } from '../features/user/types';
 import { BankList } from '../features/api/config';
-import { addBankTransactionsAsync, getTransactionsAsync } from '../features/transaction/thunks';
-import { fetchAndSaveBankAccounts } from '../features/user/thunks';
+import { addBankTransactionsAsync, ba, getTransactionsAsync } from '../features/transaction/thunks';
 import Helper from '../helper';
-import Search from '../components/transactionSearch/search';
-import Button from '../components/Button';
-import FilterOptions from '../components/filter/FilterOptions';
 import { Transaction } from '../features/transaction/types';
-import FilterActionButton from '../components/filter/FilterActionButton';
 import FilterTransactions from '../widgets/FilterTransactions';
 import { useKeyboardVisible } from '../hook/useKeyboardVisible';
-import { convertToDate } from '../features/filter/lib';
-import dayjs from 'dayjs';
 import { applyFilters } from '../utils/filters/applyFilters';
+import { useSQLiteContext } from 'expo-sqlite';
+import { accountRepository } from '../db';
 
 const Transactions = () => {
-    const { user }: { user: User | null } = useSelector((state: RootState) => state.auth);
-    const { authToken } = useSelector((state: RootState) => state.authToken);
     const { description, dateRange, accountsId } = useSelector((state: RootState) => state.filters);
+    const { user } = useSelector((state: RootState) => state.auth);
+    const { authToken } = useSelector((state: RootState) => state.authToken);
+
     const isKeyboardVisible = useKeyboardVisible()
+    const { accounts } = useSelector((state: RootState) => state.accounts)
+    const db = useSQLiteContext();
+    const [lastTransacionsFetch, setLastTransacionsFetch] = useState('');
+    useEffect(() => {
+        async function setup() {
+            const result = await accountRepository.getAll();
+
+            console.log('result', result);
+            const today = new Date();
+            const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30);
+            // setLastTransacionsFetch(result['lastInsertTime'] || from);
+        }
+        setup();
+    }, []);
+    console.log('accounts', accounts);
 
     const dispatch = useDispatch<AppDispatch>()
     const today = new Date();
     const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30);
-
     useEffect(() => {
-        if (!user || !authToken) return
-        accountsId.forEach(id => {
-            dispatch(addBankTransactionsAsync({
-                bankName: BankList.monobank,
-                requestPath: 'transactions',
-                accountId: id,
-                from: from.getTime(),
-                to: today.getTime()
-            }));
-        })
+        dispatch(ba({
+            bankName: BankList.monobank,
+            requestPath: 'transactions',
+            accounts: accountsId.map(e => {
+                return {
+                    id: e,
+                    lastSync: accounts.find(e1 => e1.id === e)?.lastSync as number
+                }
+            }),
+            from: from.getTime(),
+            to: today.getTime()
+        }))
     }, [user, authToken, accountsId])
+    // useEffect(() => {
+    //     if (!user || !authToken) return
+    //     accountsId.forEach(id => {
+    //         dispatch(addBankTransactionsAsync({
+    //             bankName: BankList.monobank,
+    //             requestPath: 'transactions',
+    //             accountId: id,
+    //             from: from.getTime(),
+    //             to: today.getTime()
+    //         }));
+    //     })
+    // }, [user, authToken, accountsId])
 
-    useEffect(() => {
-        dispatch(getTransactionsAsync())
-    }, []) 
+    // useEffect(() => {
+    //     dispatch(getTransactionsAsync())
+    // }, [])
 
     const { transactions } = useSelector((state: RootState) => state.transaction)
 
@@ -59,7 +83,7 @@ const Transactions = () => {
         description: description,
         timeframe: dateRange,
         accountsId: accountsId,
-    }).sort((a,b) => b.time - a.time)
+    }).sort((a, b) => b.time - a.time)
 
     const stats = Helper.Tranasctions.generateStatistics(filtered)
     const remove = async (transaction: Transaction) => {
@@ -71,7 +95,7 @@ const Transactions = () => {
         dispatch(clearAuthToken())
     }
     //console.log(filtered);
-    
+
 
     return (
         <Layout >
