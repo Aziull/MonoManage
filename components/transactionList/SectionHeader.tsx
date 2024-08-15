@@ -1,17 +1,16 @@
-import { SectionListData, StyleSheet, Text, View } from "react-native"
-import { Transaction } from "../../features/transaction/types"
-import { TransactionSummary } from "../../helper/types"
+import { memo } from "react";
+import { StyleSheet, Text, View } from "react-native"
 
-const SectionHeader = ({ section: { date, total } }: { section: SectionListData<Transaction, TransactionSummary> }) => {
+
+const SectionHeader = memo(({ date, total }: { date: string, total: number }) => {
+
     return (
         <View style={styles.sectionHeader}>
             <Text style={styles.sectionHeaderDate}>{date}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.sectionHeaderTotal}>{total}₴</Text>
-            </View>
+            <Text style={styles.sectionHeaderTotal}>{total}₴</Text>
         </View>
     )
-}
+})
 
 export default SectionHeader;
 
@@ -21,23 +20,20 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#EDE7F6',
         padding: 10,
         paddingVertical: 5,
-
-        shadowColor: '#000', // Колір тіні
-        shadowOffset: { width: 0, height: 2 }, // Зміщення тіні
-        shadowOpacity: 0.1, // Прозорість тіні
-        shadowRadius: 4, // Радіус розмиття тіні
-        elevation: 5, // Висота тіні для Android
+        backgroundColor: '#f5f2ff',
+        marginHorizontal: 8,
     },
     sectionHeaderDate: {
-        fontSize: 15, // Розмір шрифту для дати
-        color: '#512DA8', // Фіолетовий колір тексту
+        fontSize: 14, // Розмір шрифту для дати
+        color: '#a385ff', // Фіолетовий колір тексту
+        marginHorizontal: 'auto',
     },
     sectionHeaderTotal: {
-        fontSize: 15, // Розмір шрифту для суми
-        color: '#9575CD', // Фіолетовий колір тексту
-        fontWeight: "bold"
+        position: 'absolute',
+        right: 12,
+        fontSize: 16, // Розмір шрифту для суми
+        color: '#6a1ee3', // Фіолетовий колір тексту
     },
 });

@@ -1,68 +1,60 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { View, StyleSheet, Text, Pressable } from 'react-native'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useActionSheet } from '../../hook/useActionSheet';
 import { Transaction } from '../../features/transaction/types';
 import Helper from '../../helper';
+import ExpenceCircle from '../../assets/icons/expence-circle';
+import IncomeCircle from '../../assets/icons/income-circle';
 
 type PropsType = {
     transaction: Transaction,
-    action: "check" | "delete",
+    action: "list" | "delete",
     actionFunc: (item: Transaction) => void,
-    index: any
-    section: any,
 }
 
 
-const RenderItem = ({ transaction, action, actionFunc, index, section }: PropsType) => {
-    const { showActionSheet } = useActionSheet();
-    let categoryIconName
-
-    if (transaction.mcc) {
-        // console.log('mcc ', transaction.description, transaction.mcc, transaction.originalMcc);
-        categoryIconName = Helper.Category.getCategryIconByMcc(transaction.mcc)
-    }
-    // console.log('categoryIconName', categoryIconName);
-    
+const RenderItem = memo(({ transaction, action, actionFunc }: PropsType) => {
 
     return (
         <Pressable
             style={({ pressed }) => [
                 {
-                    backgroundColor: pressed ? 'rgba(0,0,0,0.1)' : 'transparent'
+                    backgroundColor: pressed ? '#ece8ff' : 'transparent'
                 },
                 styles.transactionItem
             ]}
-            onPress={() => { showActionSheet(transaction) }}
+            onPress={() => {
+                //TODO: open edit page
+            }}
         >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialIcons name={categoryIconName || 'circle'} size={26} color="#9575CD" style={styles.icon} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 10 }}>
+                {transaction.amount < 0 && <ExpenceCircle backgroundColor='#c2b1ff' width={50} height={50} />}
+                {transaction.amount > 0 && <IncomeCircle backgroundColor='#9dd89f' width={50} height={50} />}
+
                 <View style={styles.transactionDetails}>
                     <Text style={styles.transactionTitle}>{transaction.description}</Text>
                     <Text style={[styles.transactionAmount, transaction.amount > 0 ? styles.positiveAmount : styles.negativeAmount]}>{transaction.amount / 100}</Text>
                 </View>
-                <MaterialIcons name="touch-app" size={25} color="#9575CD" />
                 <View style={styles.actions}>
                     <Pressable onPress={(e) => {
                         e.stopPropagation();
                         actionFunc(transaction);
                     }}>
-                        <MaterialIcons name={action} size={25} color="#F44336" />
+                        <MaterialIcons name={action} size={25} color="#c2b1ff" />
                     </Pressable>
                 </View>
             </View>
         </Pressable>
     )
-}
+})
 
 const styles = StyleSheet.create({
     transactionItem: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#EDE7F6',
+        padding: 8,
+        paddingHorizontal: 16,
     },
     icon: {
         marginRight: 10,
@@ -72,18 +64,17 @@ const styles = StyleSheet.create({
     },
     transactionTitle: {
         fontSize: 16,
-        color: '#512DA8',
+        color: '#6a1ee3',
     },
     transactionAmount: {
+        fontWeight: '500',
         fontSize: 16,
     },
     positiveAmount: {
         color: '#4CAF50', // світло-зелений для позитивних сум
-        fontWeight: 'bold',
     },
     negativeAmount: {
-        color: '#9575CD', // фіолетовий для негативних сум
-        fontWeight: 'bold',
+        color: '#6a1ee3', // фіолетовий для негативних сум
     },
     actions: {
         flexDirection: 'row',
