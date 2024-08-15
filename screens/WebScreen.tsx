@@ -1,25 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { Linking, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../store';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../store';
 import { setAuthToken } from '../features/authToken/slice';
-import { fetchAndSaveBankAccounts, getUserAsync } from '../features/user/thunks';
+import { getUserAsync } from '../features/user/thunks';
 import { WebScreenProps } from '../navigation/types';
-import { BankList } from '../features/api/config';
 import { useTheme } from '@react-navigation/native';
+import Loader from '../components/Loader';
 
-const WebScreen = ({ route }: WebScreenProps) => {
-    const dispatch: AppDispatch = useDispatch();
-    const { authToken } = useSelector((state: RootState) => state.authToken);
-    const { url } = route.params;
-    const [text, setText] = useState("Виконуємо вхід...");
-
-    const { colors } = useTheme();
-    const styles = makeStyles({ colors });
-
-    // JavaScript, що буде виконано в WebView
-    const scripts = `
+const scripts = `
         const sendMessage = () => {
             const element = document.querySelector(".id")?.innerHTML;
             if (element.length) {
@@ -55,7 +45,14 @@ const WebScreen = ({ route }: WebScreenProps) => {
         }, 500);
     `;
 
-    // Відкриття посилання в браузері
+const WebScreen = ({ route }: WebScreenProps) => {
+    const dispatch: AppDispatch = useDispatch();
+    const { url } = route.params;
+    const [text, setText] = useState("Виконуємо вхід...");
+
+    const { colors } = useTheme();
+    const styles = makeStyles({ colors });
+
     const openLink = (url: string) => {
         Linking.openURL(url)
             .then((supported) => {
@@ -66,13 +63,11 @@ const WebScreen = ({ route }: WebScreenProps) => {
             .catch((err) => console.error('Помилка відкриття посилання', err));
     };
 
-    // Перевірка, чи є рядок URL
-    function isURL(str: string) {
+    const isURL = (str: string) => {
         const urlRegex = /^(https?:\/\/)?([\w-]+(\.[\w-]+)+\/?)|localhost(\:\d{2,5})?(\/\S*)?$/;
         return urlRegex.test(str);
     }
 
-    // Обробка повідомлень з WebView
     const onMessage = async (event: WebViewMessageEvent) => {
         const data = event.nativeEvent.data.slice(1, -1);
         if (isURL(data)) {
@@ -84,13 +79,6 @@ const WebScreen = ({ route }: WebScreenProps) => {
         dispatch(getUserAsync());
     };
 
-    // Ефект для отримання банківських акаунтів після отримання токена
-    useEffect(() => {
-        if (authToken) {
-            dispatch(fetchAndSaveBankAccounts({ bankName: BankList.monobank, requestPath: 'clientInfo' }));
-        }
-    }, [authToken, dispatch]);
-
     return (
         <View style={styles.container}>
             <WebView
@@ -100,10 +88,7 @@ const WebScreen = ({ route }: WebScreenProps) => {
                 injectedJavaScript={scripts}
                 onMessage={onMessage}
             />
-            <View style={styles.overlay}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={styles.text}>{text}</Text>
-            </View>
+            <Loader text={text} />
         </View>
     );
 };
@@ -118,21 +103,6 @@ const makeStyles = ({ colors }: { colors: any }) => StyleSheet.create({
     webView: {
         opacity: 0,
         flex: 0,
-    },
-    overlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    text: {
-        marginTop: 20,
-        color: colors.primary,
-        fontSize: 18,
-        textAlign: 'center',
     },
 });
 

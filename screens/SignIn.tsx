@@ -1,30 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { ActivityIndicator, Alert, Image, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Layout from '../components/Layout';
 import { getUserAsync } from '../features/user/thunks';
 import { SignInProps } from '../navigation/types';
-import { AppDispatch } from '../store';
+import { AppDispatch, RootState } from '../store';
 import Button from '../components/button/Button';
+import { resetAppAction } from '../store/rootReducer';
 const SignIn: React.FC<SignInProps> = ({ navigation }) => {
     const dispatch: AppDispatch = useDispatch();
-    const [loading, setLoading] = useState(false);
-
+    const { error, loading } = useSelector((state: RootState) => state.auth);
     const handleLoginWithoutBank = async () => {
-        setLoading(true);
-        try {
-            await dispatch(getUserAsync());
-        } catch (error) {
-            Alert.alert("Error", "Failed to login without bank.");
-        } finally {
-            setLoading(false);
-        }
+        dispatch(getUserAsync());
     };
 
     const handleLoginWithMonobank = () => {
         navigation.navigate('WebScreen', { url: 'https://api.monobank.ua/' });
     };
+
+    if (error) {
+        Alert.alert("Error", "Failed to login.");
+    }
     return (
         <Layout style={styles.container}>
             <Image source={require('../assets/logo.png')} style={styles.logo} />
@@ -39,30 +36,44 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
                         onPress={handleLoginWithMonobank}
                         width='full'
                         size='lg'
+                        shape="roundedFull"
                         style={styles.shadow}
-                        icon={<Icon name="credit-card" size={20} color="#fff" />}
+                        icon={{
+                            name: "credit-card",
+                            size: 20,
+                            color: '#fff'
+                        }}
                     >
                         Увійти з Monobank
                     </Button>
                     <Button
+                        shape="roundedFull"
                         onPress={handleLoginWithoutBank}
                         variant='secondary'
                         width='full'
                         style={styles.shadow}
-                        icon={<Icon name="user" size={20} color="#333" />}
+                        icon={{
+                            name: 'user',
+                            size: 20,
+                            color: "#5818bf"
+                        }}
+                        textStyle={{
+                            color: "#5818bf"
+                        }}
+
                     >
                         Увійти без банку
                     </Button>
                 </View>
-            )}
+            )
+            }
 
-        </Layout>
+        </Layout >
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,

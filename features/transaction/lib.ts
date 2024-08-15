@@ -13,5 +13,6 @@ export const mapToEntity = (transaction: Transaction): TransactionEntity => ({
 })
 
 export const mapToModel = (transaction: TransactionEntity): Transaction => ({
-    ...transaction
+    ...transaction, 
+    deleted: !!transaction.deleted
 })

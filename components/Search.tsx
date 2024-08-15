@@ -1,8 +1,9 @@
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import { TouchableWithoutFeedback, ViewStyle } from 'react-native';
+import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable, TouchableWithoutFeedback, ViewComponent, ViewStyle } from 'react-native';
 import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
+import Button from './button/Button';
+import { debounce } from "lodash";
 type SearchProps = {
     placeholder?: string;
     handleSearch?: () => void,
@@ -11,13 +12,13 @@ type SearchProps = {
     style?: ViewStyle
 };
 
-const Search = React.forwardRef(({ style, handleSearch, value, handleValueChange, placeholder = "Пошук" }: SearchProps, ref:  React.ForwardedRef<TextInput>) => {
+const Search = React.forwardRef(({ style, handleSearch, value, handleValueChange, placeholder = "Пошук" }: SearchProps, ref: React.ForwardedRef<TextInput>) => {
+
     return (
-        <View style={[styles.container, style]}>
-            <TouchableOpacity onPress={handleSearch} style={styles.iconContainer}>
-                <Icon style={styles.icon} name="search" size={22} color="#000" />
-            </TouchableOpacity>
+        <Pressable onPress={handleSearch} style={[styles.container, style]}>
+            <Icon name="search" size={24} color="#000" />
             <TextInput
+                numberOfLines={1}
                 ref={ref}
                 style={styles.input}
                 placeholder={placeholder}
@@ -27,39 +28,37 @@ const Search = React.forwardRef(({ style, handleSearch, value, handleValueChange
             />
             {!!value.length && (
                 <TouchableOpacity onPress={() => handleValueChange('')} style={styles.closeContainer}>
-                    <Icon style={styles.icon} name="close" size={15} color="#000" />
+                    <Icon name="close" size={20} color="#000" />
                 </TouchableOpacity>
             )}
-        </View>
+        </Pressable>
     );
-}) 
+})
 
 const styles = StyleSheet.create({
     container: {
-        alignSelf: 'flex-start',
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#fff',
-        width: "50%",
-        margin: 5,
+        margin: 8,
         borderRadius: 10,
-        borderWidth: 1,
-        borderColor: "#512DA8",
-        paddingHorizontal: 5
+        borderWidth: 0,
+        paddingHorizontal: 4
     },
-    iconContainer: {
-        paddingRight: 5,
-    },
-    icon: {
-        color: "#512DA8",
-    },
+
     input: {
-        width: '80%',
-        paddingRight: 15,
+        paddingVertical: 4,
+        paddingRight: 10,
+        marginLeft: 4,
+        fontSize: 16,
+        flex: 1,
     },
     closeContainer: {
         position: "relative",
-        left: -15
+        left: -4,
+        borderRadius: 100,
+        backgroundColor: "#ddd",
+        padding: 1,
 
     },
 });

@@ -5,7 +5,7 @@ import { getAccounts } from '../accounts/thunks';
 
 const today = new Date();
 const initialState: FiltersState = {
-    dateRange: { start: new Date(today.getFullYear(), today.getMonth(), 1).getTime(), end: today.getTime() },
+    timeframe: { title: "Вручну" ,  start: new Date(today.getFullYear(), today.getMonth(), 1).getTime(), end: today.getTime() },
     accountsId: [],
     description: '',
 };
@@ -15,7 +15,7 @@ const filtersSlice = createSlice({
     initialState,
     reducers: {
         setDateRange(state, action: PayloadAction<DateRange>) {
-            state.dateRange = action.payload;
+            state.timeframe = action.payload;
         },
         setAccountsId(state, action: PayloadAction<string[]>) {
             state.accountsId = action.payload;

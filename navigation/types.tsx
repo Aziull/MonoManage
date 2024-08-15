@@ -1,15 +1,16 @@
-// types.tsx
 import { StackNavigationProp } from '@react-navigation/stack';
 import { NavigatorScreenParams, RouteProp } from '@react-navigation/native';
 
-// Тип параметрів для BottomTabNavigator
+type TransactionScreenType = {
+    deleted: boolean
+}
+
 export type BottomTabParamList = {
-    Transactions: undefined;
-    DeletedTransactions: undefined;
+    Transactions: TransactionScreenType;
+    DeletedTransactions: TransactionScreenType;
     Settings: undefined;
 };
 
-// Тип параметрів для RootStackNavigator
 export type RootStackParamList = {
     SignIn: undefined;
     WebScreen: { url: string };
@@ -17,17 +18,14 @@ export type RootStackParamList = {
     NewTransaction: { type: TransactionType };
 };
 
-// SignIn компонент з navigation
 export type SignInProps = {
     navigation: StackNavigationProp<RootStackParamList, 'SignIn'>;
 };
 
-// WebScreen компонент з route
 export type WebScreenProps = {
     route: RouteProp<RootStackParamList, 'WebScreen'>
 };
 
-// TransactionForm компонент з navigation і route
 export type TransactionType = 'income' | 'expense';
 
 export type TransactionFormProps = {
@@ -35,5 +33,12 @@ export type TransactionFormProps = {
     route: RouteProp<RootStackParamList, 'NewTransaction'>;
 };
 
-// Home компонент без параметрів
 export type HomeProps = {};
+
+export type TransactionsScreenProps = {
+    route: RouteProp<BottomTabParamList, 'Transactions'>;
+};
+
+export type DeletedTransactionsScreenProps = {
+    route: RouteProp<BottomTabParamList, 'DeletedTransactions'>;
+};

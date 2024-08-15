@@ -1,50 +1,104 @@
-import { Text, View } from "react-native";
-import Button from "../../components/Button";
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useSelector } from "react-redux";
-import { RootState } from "../../store";
 import { Account } from "../../features/accounts/types";
-import { useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import Button, { ButtoPropsType } from "../../components/button/Button";
+import { selectAllAccounts, selectBankAccounts, selectCashAccounts } from "../../features/accounts/slice";
+import { Pressable, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
+
+import Icon from 'react-native-vector-icons/FontAwesome';
+
 type Props = {
-    account: Account | null | undefined;
-    onSelectAccount: (account?: Account) => void;
+    accountId: string | null | undefined;
+    onSelectAccount: (accountId?: string) => void;
 };
 
-const WalletSelector = ({ account, onSelectAccount }: Props) => {
-    const { accounts } = useSelector((state: RootState) => state.accounts)
+const WalletSelector = ({ accountId, onSelectAccount }: Props) => {
+    const bank = useSelector(selectBankAccounts);
+    const cash = useSelector(selectCashAccounts);
 
-    useEffect(() => {
-        if (!account) {
-            onSelectAccount(accounts.find(acc => acc.type === 'cash'))
-        }
-    }, [])
 
     return (
-        <Button containerStyle={{
-            flexDirection: 'row',
-            columnGap: 10
-        }}>
-            <View style={{
-                backgroundColor: "#512DA8",
-                flexDirection: 'row',
-                width: 40,
-                alignItems: 'center',
-                justifyContent: 'center',
-                aspectRatio: 1,
-                borderRadius: 20
-            }}>
-                <MaterialIcons name='account-balance-wallet' color={'white'} size={25} />
+        <View style={{ flex: 1 }}>
+            <Header
+                data={['all', "bank", 'cash']}
+                render={(item, active, setActive) => <AccountButton key={item} active={active} onPress={() => setActive(item)}
+                >
+                    {item}
+                </AccountButton>}>
+                <AccountButton  >
+                    Всі
+                </AccountButton>
+                <AccountButton  >
+                    Банк
+                </AccountButton>
 
-            </View>
-            <View>
-                <Text style={{ color: '#8307f7', fontSize: 13 }}>
-                    Рахунок
-                </Text>
-                <Text style={{ color: "#512DA8", fontSize: 15 }}>
-                    {account?.name}
-                </Text>
-            </View>
-        </Button>
+                <AccountButton  >
+                    Готівка
+                </AccountButton>
+
+            </Header>
+            <Content >
+                <Text>asd</Text>
+            </Content>
+        </View >
     )
 }
+const Header = ({ data, render, children }: { render: (item: 'bank' | 'cash' | 'all', active: boolean, setActive: (item: 'bank' | 'cash' | 'all') => void) => ReactNode, data: ('bank' | 'cash' | 'all')[], children: ReactNode }) => {
+    const [active, setActive] = useState<'bank' | 'cash' | 'all'>('all')
+    return <View style={s.header}>
+        {data.map(el => (
+            render(el, active === el, (item) => setActive(item))
+        ))}
+    </View>
+}
+
+const AccountButton = ({ children, active, ...props }: { active?: boolean, children: ReactNode } & ButtoPropsType) => {
+    return <Button size="sm" numberOfLines={1} textStyle={s.textStyle} containerStyle={s.containerStyle} style={[s.accountButton, active && { backgroundColor: '#7e47ff80' }]} variant="ghost" {...props}>
+        {children}
+    </Button>
+}
+
+
+const Content = ({ children }: { children: ReactNode }) => {
+    return <View style={c.contentContainer}>
+        {children}
+    </View>
+}
+
+const c = StyleSheet.create({
+    contentContainer: {
+        flex: 1,
+
+    },
+
+})
+
+const s = StyleSheet.create({
+    header: {
+        flexDirection: 'row',
+        columnGap: 4,
+        padding: 1,
+        borderWidth: 1,
+        borderColor: '#7e47ff80',
+        borderRadius: 10,
+    },
+    accountButton: {
+        padding: 0,
+        flexBasis: 100,
+        flexShrink: 1,
+        flexGrow: 1,
+    },
+
+    containerStyle: {
+        flexGrow: 1,
+    },
+    iconStyle: {
+        borderRadius: 999,
+
+    },
+    textStyle: {
+        fontSize: 16,
+    }
+})
 export default WalletSelector;

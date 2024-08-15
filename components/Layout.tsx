@@ -17,7 +17,8 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     justifyContent: 'center',
     paddingTop: 40,
-    backgroundColor: '#e4d6f8',
+    // backgroundColor: '#e4d6f8',
+    backgroundColor: '#f5f2ff',
   },
 });
 

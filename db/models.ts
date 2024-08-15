@@ -1,8 +1,9 @@
-import { Account, BaseModel, User } from "./entities";
+import { Account, BaseModel, Transaction, TransactionsFrequency, User } from "./entities";
 import * as SQLite from 'expo-sqlite';
-
+import { v4 as uuidv4 } from 'uuid';
 interface IRepository<T extends BaseModel> {
     create(item: T): Promise<T | null>;
+    getAll(): Promise<T[]>;
     getById(id: string): Promise<T | null>;
     update(id: string, item: Partial<T>): Promise<T | null>;
     delete(id: string): Promise<void>;
@@ -23,11 +24,14 @@ export class Repository<T extends BaseModel> implements IRepository<T> {
         this.tableName = tableName;
     }
 
-    async create(item: Omit<T, 'id'>): Promise<T | null> {
+    getAll(): Promise<T[]> {
+        return db.getAllAsync(`SELECT * FROM ${this.tableName}`)
+    }
 
+    async create(item: Omit<T, 'id'>): Promise<T | null> {
         const itemWithId: T = {
             ...item,
-            id: self.crypto.randomUUID() as string
+            id: uuidv4()
         } as T;
 
         const keys = Object.keys(itemWithId).join(', ');
@@ -36,14 +40,12 @@ export class Repository<T extends BaseModel> implements IRepository<T> {
 
         const query = `INSERT INTO ${this.tableName} (${keys}) VALUES (${placeholders}) RETURNING *`;
         const res = await db.getFirstAsync<T>(query, values);
-        console.log('create', res)
         return res;
     }
 
     async getById(id: string): Promise<T | null> {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const res = await db.getFirstAsync<T>(query, id);
-        console.log('getById', res)
         return res
     }
 
@@ -54,7 +56,6 @@ export class Repository<T extends BaseModel> implements IRepository<T> {
 
         const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ? RETURNING *`;
         const res = await db.getFirstAsync<T>(query, [...values, id]);
-        console.log('read', res)
         return res
     }
 
@@ -64,20 +65,12 @@ export class Repository<T extends BaseModel> implements IRepository<T> {
     }
 
     async upsert(item: T): Promise<T | null> {
-        const keys = Object.keys(item).join(', ');
-        const values = Object.values(item);
-        const placeholders = values.map((_) => `?`).join(', ');
-
-        const updateClause = Object.keys(item)
-            .map((key) => `${key} = EXCLUDED.${key}`)
-            .join(', ');
-
-        const query = `INSERT INTO ${this.tableName} (${keys}) VALUES (${placeholders})
-                       ON CONFLICT (id) DO UPDATE SET ${updateClause}
-                       RETURNING *`;
-        const rows = await db.getFirstAsync<T>(query, values);
-
-        return rows;
+        const existingItem = await this.getById(item.id);
+        if (existingItem) {
+            return this.update(item.id, item as Partial<T>);
+        } else {
+            return this.create(item);
+        }
     }
 }
 
@@ -105,5 +98,25 @@ export class UpsertManyRepository<T extends BaseModel> extends Repository<T> imp
 export class AccountRepository extends UpsertManyRepository<Account> {
     async getAllByUser(userId: string): Promise<Account[] | null> {
         return await db.getAllAsync(`SELECT * FROM ${this.tableName} WHERE userId = ?`, userId)
+    }
+}
+
+export class TransactionRepository extends UpsertManyRepository<Transaction> {
+    async getAllByAccount(accountId: string) {
+        return await db.getAllAsync(`SELECT * FROM ${this.tableName} WHERE accountId = ?`, accountId)
+    }
+    async getAllByAccounts(accountIds: string[]) {
+        const placeholders = accountIds.map(() => '?').join(',');
+        const query = `SELECT * FROM ${this.tableName} WHERE accountId IN (${placeholders})`;
+        return await db.getAllAsync<Transaction>(query, accountIds);
+    }
+    async getAllSortedNames() {
+        const query = `SELECT description, COUNT(description) as frequency 
+        FROM transactions 
+        GROUP BY description 
+        ORDER BY frequency DESC`
+
+        return await db.getAllAsync<TransactionsFrequency>(query)
+
     }
 }

@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef, useReducer } from 'react';
-import { View, Text, Animated, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
-import Button from './Button';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, Animated, StyleSheet, ViewStyle, Dimensions } from 'react-native';
+import Button from './button/Button';
 
 type TransactionType = 'income' | 'expense';
 
 type PropsType = {
   selectedType: TransactionType;
   onTypeChange: (type: TransactionType) => void;
-  style?: ViewStyle
+  style?: ViewStyle;
 };
 
 export const colors = {
@@ -15,43 +15,39 @@ export const colors = {
   expense: '#f06f6f', // Червоний для витрат
 };
 
-
-
 const TransactionTypeSwitcher: React.FC<PropsType> = ({ selectedType, onTypeChange, style }) => {
-  const animation = useRef(new Animated.Value(selectedType === 'income' ? 0 : 1)).current;
-  useEffect(() => {
-    Animated.timing(animation, {
-      toValue: selectedType === 'income' ? 0 : 1,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [selectedType]);
 
-  const marginLeft = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '50%'],
-  });
-  const backgroundColor = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [colors.income, colors.expense],
-  });
-  //todo: use debounce
   return (
-    <View style={[styles.switcherContainer, {
-      ...style
-    }]}>
-      <Animated.View style={[styles.slider, { marginLeft, backgroundColor }]} />
+    <View style={[styles.switcherContainer, style]}>
       <Button
-        style={styles.button}
+        variant='ghost'
+        size='sm'
         onPress={() => onTypeChange('income')}
+        style={[styles.button,
+        selectedType === 'income' && {
+          backgroundColor: '#7e47ff90'
+        }
+        ]}
+        textStyle={{
+          color: selectedType === 'income' ? 'white' : '#7e47ff'
+        }}
       >
-        <Text style={styles.buttonText}>Прибуток</Text>
+        Прибуток
       </Button>
       <Button
-        style={styles.button}
+        size='sm'
+        variant='ghost'
         onPress={() => onTypeChange('expense')}
+        style={[styles.button,
+          selectedType === 'expense' && {
+            backgroundColor: '#7e47ff90'
+          }
+          ]}
+          textStyle={{
+            color: selectedType === 'expense' ? 'white' : '#7e47ff'
+          }}
       >
-        <Text style={styles.buttonText}>Витрата</Text>
+        Витрата
       </Button>
     </View>
   );
@@ -59,34 +55,20 @@ const TransactionTypeSwitcher: React.FC<PropsType> = ({ selectedType, onTypeChan
 
 const styles = StyleSheet.create({
   switcherContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderRadius: 10,
-    backgroundColor: "rgba(82, 45, 168, 0.7)",
-    borderColor: "rgba(82, 45, 168, 0.7)",
-    overflow: 'hidden',
     padding: 3,
-    width: '75%'
-  },
-  slider: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 3,
-    width: '50%',
-    borderRadius: 10,
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(82, 45, 168, 0.6)',
-    margin: 3,
+    borderRadius: 10,
+    borderColor: 'rgba(82, 45, 168, 0.5)',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '75%',
   },
   button: {
     flex: 1,
-    paddingVertical: 5,
-  },
-  buttonText: {
-    color: '#eee',
-    alignSelf: 'center',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 });
 

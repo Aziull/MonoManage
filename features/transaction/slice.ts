@@ -1,54 +1,93 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createEntityAdapter, createSelector, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { Transaction } from './types';
-import { transactionApi } from './api';
-import { addTransactionAsync, getTransactionsAsync, toggleIgnoreTransactionAsyncs, addBankTransactionsAsync } from './thunks';
-import Helper from '../../helper';
-import { TransactionModel } from '../../services/database';
+
+import { addTransactionAsync, getTransactionsAsync, toggleIgnoreTransactionAsyncs, addBankTransactionsAsync, getAllTransactionsByAccounts } from './thunks';
+import { RootState } from '../../store';
+import { applyFilters } from '../../utils/filters/applyFilters';
+
 type StateType = {
-  transactions: Transaction[]
-  ignoredTransactionIds: string[]
+  status: 'idle' | 'loading' | 'succeeded' | 'failed',
+  error: null | string | object | unknown,
 }
 
-const initialState: StateType = {
-  transactions: [],
-  ignoredTransactionIds: [],
-};
+const transactionsAdapter = createEntityAdapter<Transaction>({
+  sortComparer: (a, b) => b.time - a.time,
+});
+
+const initialState: EntityState<Transaction, string> & StateType = transactionsAdapter.getInitialState({
+  status: 'idle',
+  error: null,
+
+},);
 
 const transactionSlice = createSlice({
-  name: 'transaction',
+  name: 'transactions',
   initialState,
   reducers: {
     addTrasnaction: (state, action) => {
-      state.transactions.push(action.payload);
-    },
-    addToIgnored: (state, action) => {
-      state.ignoredTransactionIds.push(action.payload.transactuin.id);
+      transactionsAdapter.addOne(state, action.payload)
     }
   },
   extraReducers: (builder) => {
-    builder.addCase(addBankTransactionsAsync.fulfilled, (state, action) => {
-      if (!Array.isArray(action.payload)) return
-      action.payload.forEach(transaction => {
-        const predicate = (item: Transaction) => item.id === transaction.id;
-        state.transactions = Helper.Array.upsert(state.transactions, transaction, predicate);
-      });
-    });
-    builder.addCase(getTransactionsAsync.fulfilled, (state, action) => {
-      state.transactions = action.payload;
-    });
-    builder.addCase(addTransactionAsync.fulfilled, (state, action) => {
-      const predicate = (item: Transaction) => item.id === action.payload.id;
-      state.transactions = Helper.Array.upsert(state.transactions, action.payload, predicate);
-    });
-    builder.addCase(toggleIgnoreTransactionAsyncs.fulfilled, (state, action) => {
-      const { id, newDeleted } = action.payload;
-      const transaction = state.transactions.find(t => t.id === id);
-      if (transaction) {
-        transaction.deleted = newDeleted;
-      }
-    });
+    builder.addCase(addBankTransactionsAsync.fulfilled, (state, { payload }: PayloadAction<Transaction[]>) => {
+      transactionsAdapter.upsertMany(state, payload);
+    })
+      .addCase(getTransactionsAsync.fulfilled, transactionsAdapter.addMany)
+      .addCase(addTransactionAsync.fulfilled, (state, { payload }) => {
+        transactionsAdapter.updateOne(state, {
+          id: payload.id,
+          changes: payload
+        })
+      })
+      .addCase(toggleIgnoreTransactionAsyncs.pending, (state) => {
+        state.status = 'loading'
+      })
+      .addCase(toggleIgnoreTransactionAsyncs.fulfilled, (state, { payload }) => {
+        const { id, newDeleted } = payload;
+        state.status = 'idle'
+        transactionsAdapter.updateOne(state, {
+          id,
+          changes: {
+            ...payload,
+            deleted: newDeleted
+          }
+        })
+      })
+      .addCase(getAllTransactionsByAccounts.fulfilled, transactionsAdapter.setAll)
   }
 });
 
-export const { addTrasnaction, addToIgnored } = transactionSlice.actions;
+export const {
+  selectAll: selectAllTransactions,
+  selectById: selectTransactionById,
+  selectIds: selectTransactuionsIds
+} = transactionsAdapter.getSelectors((state: RootState) => state.transaction)
+
+export const getTransactionsStatus = (state: RootState) => state.transaction.status;
+export const getTransactionsError = (state: RootState) => state.transaction.error;
+
+export const selectTrabsactionsByAccount = createSelector(
+  [selectAllTransactions, (_, accountId) => accountId],
+  (transactions, accountId) => transactions.filter(transaction => transaction.accountId === accountId)
+)
+
+export const selectDeletedTransactions = createSelector(
+  [selectAllTransactions],
+  (transactions) => transactions.filter(transaction => transaction.deleted)
+);
+
+export const selectNotDeletedTransactions = createSelector(
+  [selectAllTransactions],
+  (transactions) => transactions.filter(transaction => !transaction.deleted)
+);
+
+const selectFilters = (state: RootState) => state.filters;
+
+export const selectFilteredTransactions = createSelector(
+    [selectFilters, (state: RootState, deleted: boolean) => deleted ? selectDeletedTransactions(state) : selectNotDeletedTransactions(state)],
+    (filters, transactions) => applyFilters(transactions, filters)
+);
+
+
+export const { addTrasnaction } = transactionSlice.actions;
 export default transactionSlice.reducer;

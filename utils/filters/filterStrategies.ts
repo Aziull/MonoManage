@@ -11,7 +11,7 @@ const descriptionFilter = (criteria: FilterCriteria) => (transaction: Transactio
 }
 
 const timeframeFilter = (criteria: FilterCriteria) => (transaction: Transaction) => {
-    if (!criteria.timeframe?.start || !criteria.timeframe?.end) return true;
+    if (!criteria.timeframe?.start && !criteria.timeframe?.end) return true;
     const {start, end} = criteria.timeframe;
     const transactionDate = dayjs(transaction.time * 1000);
     const startDate = dayjs(start);

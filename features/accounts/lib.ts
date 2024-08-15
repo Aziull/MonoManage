@@ -13,8 +13,20 @@ export const mapClientAccounts = (dto: MonobankClientDto): Account[] => {
 }
 
 export const mapToModel = ({ userId, updatedAt, ...account }: AccountEntity): Account => {
+    const today = new Date();
+    const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30);
     return {
         ...account,
+        lastSync: account.lastSync ? new Date(account.lastSync).getTime() : from.getTime()
+    }
+
+}
+
+export const mapToEntity = (account: Account, userId: string, updatedAt: number): AccountEntity => {
+    return {
+        ...account,
+        updatedAt,
+        userId
     }
 
 }

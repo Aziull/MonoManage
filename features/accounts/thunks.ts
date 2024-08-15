@@ -1,9 +1,8 @@
-import { createAsyncThunk, isRejectedWithValue } from "@reduxjs/toolkit";
-import { AccountModel } from "../../services/database";
+import { createAsyncThunk } from "@reduxjs/toolkit";
 import { mapToModel } from "./lib";
-import { Account as AccountEntity } from "../../services/database/entities";
 import { RootState } from "../../store";
 import { Account, CashAccountArgs } from "./types";
+import { accountRepository } from "../../db";
 
 export const getAccounts = createAsyncThunk(
     'account/getAccounts',
@@ -11,7 +10,8 @@ export const getAccounts = createAsyncThunk(
         const { user } = (getState() as RootState).auth;
         if (!user) return rejectWithValue('User not exist');
         try {
-            const accounts: AccountEntity[] = await AccountModel.selectAll(`userId = '${user.id}'`);
+            const accounts = await accountRepository.getAllByUser(user.id);
+            if (!accounts) throw new Error('У цього користувача ще немає жодного рахунку');
 
             return accounts.map(mapToModel);
         } catch (error) {
@@ -25,27 +25,34 @@ export const updateAccountInDb = createAsyncThunk(
     async (accounts: Account[], { getState, rejectWithValue }) => {
         const { user } = (getState() as RootState).auth;
         if (!user) return rejectWithValue('User not exist');
-        await AccountModel.insertOrUpdateMultiple(
-            accounts.map((account: Account): AccountEntity => ({ ...account, userId: user.id, type: "bank", updatedAt: Date.now() })),
-            (account: AccountEntity) => `id = '${account.id}'`
-        );
+
+        await accountRepository.upsertMany(
+            accounts.map(account => ({
+                ...account,
+                userId: user.id,
+                updatedAt: Date.now()
+            }))
+        )
     }
 )
 
 export const createCashAccount = createAsyncThunk(
     'accounts/createCashAccount',
     async ({ name, balance }: CashAccountArgs, { getState, rejectWithValue }) => {
-        const { user } = (getState() as RootState).auth;
-        if (!user) return rejectWithValue('No user');
-        const newAccount = await AccountModel.insertOrUpdate({
-            id: self.crypto.randomUUID(),
-            userId: user.id,
-            type: 'cash',
-            balance,
-            name,
-        } as AccountEntity);
+        try {
+            const { user } = (getState() as RootState).auth;
+            if (!user) throw Error('No user');
+            const newAccount = await accountRepository.create({
+                userId: user.id,
+                type: 'cash',
+                balance,
+                name,
+            })
+            if (!newAccount) throw Error('failed adding user to db');
 
-        if (!newAccount) rejectWithValue('failed adding user to db');
-        return mapToModel(newAccount);
+            return newAccount;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
     }
 )

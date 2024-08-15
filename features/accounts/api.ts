@@ -15,10 +15,8 @@ export const accountApi = baseApi.injectEndpoints({
                 try {
                     const { data } = await queryFulfilled;
 
-                    const res = await dispatch(updateAccountInDb(data))
-                    if (res.meta.requestStatus === 'fulfilled') {
-                        dispatch(updateAccounts(data))
-                    }
+                    dispatch(updateAccountInDb(data));
+                    dispatch(updateAccounts(data))
                     console.log('Рахунок отримано успішно', data);
                 } catch (error) {
                     console.error('Помилка отримання рахунків', error);

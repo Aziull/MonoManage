@@ -5,7 +5,7 @@ import { GroupedTransactions, TransactionStatistics, TransactionSummary } from "
 const groupByDate = (transactions: Transaction[]): GroupedTransactions => transactions.reduce((acc, transaction) => {
     const date = new Date(transaction.time * 1000).toLocaleDateString('uk-UA', {
         day: 'numeric',
-        month: 'long',
+        month: 'short',
         year: "numeric"
     });
 

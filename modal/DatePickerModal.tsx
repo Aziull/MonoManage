@@ -5,6 +5,7 @@ import DateTimePicker, { DateType } from 'react-native-ui-datepicker';
 import 'dayjs/locale/uk';
 import { DatePickeMultipleProps, DatePickerRangeProps, DatePickerSingleProps } from "react-native-ui-datepicker/lib/typescript/src/DateTimePicker";
 import { MultiChange, RangeChange, SingleChange } from "react-native-ui-datepicker/lib/typescript/src/types";
+import { colors } from "../theme";
 
 type SingleParam = {
     date: DateType;
@@ -82,6 +83,12 @@ const DatePickerModal: React.FC<PropsType> = ({ datePickerProps: { params, ...da
                         selectedTextStyle={{
                             fontWeight: 'bold',
                         }}
+                        weekDaysTextStyle={{ color: colors.purple[900] }}
+                        selectedItemColor={colors.purple[500]}
+                        headerButtonColor={colors.purple[800]}
+                        headerTextStyle={{ color: colors.purple[500] }}
+                        maxDate={new Date()}
+                        firstDayOfWeek={1}
                         {...data}
 
                     />
@@ -103,9 +110,9 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         backgroundColor: 'white',
-        marginHorizontal: 16,
-        borderRadius: 20,
-        padding: 20,
+        borderRadius: 25,
+        padding: 8,
+        marginHorizontal: 8,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
@@ -118,7 +125,7 @@ const styles = StyleSheet.create({
     },
     button: {
         marginTop: 20,
-        backgroundColor: '#9575CD', // Використовуємо вашу фіолетову кольорову гаму
+        backgroundColor: colors.purple[500], // Використовуємо вашу фіолетову кольорову гаму
         padding: 10,
         borderRadius: 10,
     },

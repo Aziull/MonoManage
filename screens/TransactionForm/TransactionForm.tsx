@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, TextInput, StyleSheet, Alert, Text, ImageBackground } from 'react-native';
+import { View, TextInput, StyleSheet, Alert, Text, ImageBackground, FlatList, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,16 +18,18 @@ import { TransactionFormValidation } from '../../lib/validation';
 import { Transaction } from '../../features/transaction/types';
 import z from 'zod';
 import DateTimePicker from 'react-native-ui-datepicker';
-import Button  from '../../components/button/Button';
+import Button from '../../components/button/Button';
 import HiddeOnKeyboard from '../../components/HiddeByKeyboard';
 import { TabButton, TabSymbolIconButton } from '../../components/numpad/TabButton';
 import { LinearGradient } from 'expo-linear-gradient';
-import TransactionNamePicker from '../../components/TransactionNamePicker';
+import TransactionNamePicker, { useTransactionsNames } from '../../components/TransactionNamePicker';
 import ActionButtons from './ActionButtons';
-import { TabPanel, TabPanels, Tabs, TabsList } from '../../components/ui/tabs';
+import { AnimatedActiveText, AnimatedActiveTextInput } from '../../components/ui/AnimatedActiveText';
+import TransactionFields from './TransactionFields';
+import ActionsTabs from './ActionsTabs';
 
-type ActionType = '₴' | 'description' | 'account' | 'date';
-type TabButtonType = {
+export type ActionType = '₴' | 'description' | 'account' | 'date';
+export type TabButtonType = {
     value: ActionType,
     button: string,
     icon?: {
@@ -35,35 +37,18 @@ type TabButtonType = {
     }
 }
 
-const tabButtons: TabButtonType[] = [
-    {
-        value: '₴',
-        button: '₴',
-    },
-    {
-        value: 'description',
-        button: 'Назва',
-        icon: { name: 'edit', color: '#7e47ff', size: 20 },
 
-    },
-    {
-        value: 'date',
-        button: 'Дата',
-        icon: { name: 'calendar', color: '#7e47ff', size: 20 },
-
-    },
-];
 
 
 
 const TransactionForm: React.FC<TransactionFormProps> = ({ navigation, route }) => {
     let currentDate = new Date();
     const [type, setType] = useState<TransactionType>(route.params.type);
-
+    const transactionsNames = useTransactionsNames()
     const dispatch = useDispatch<AppDispatch>();
     const [selectedAction, setSelectedAction] = useState<ActionType>('₴');
     const descriptionRef = useRef<TextInput>(null);
-    const { control, handleSubmit, getValues, formState: { isDirty }, setValue } = useForm<z.infer<typeof TransactionFormValidation>>({
+    const { control, handleSubmit, getValues, formState: { isValid } } = useForm<z.infer<typeof TransactionFormValidation>>({
         resolver: zodResolver(TransactionFormValidation),
         defaultValues: {
             description: '',
@@ -75,7 +60,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ navigation, route }) 
 
     const watched = useWatch({
         control,
-        name: ['date', 'amount'],
+        name: ['date', 'amount', 'description'],
     });
 
     const onSubmit = async ({ amount: amountStr, description, date, accountId }: z.infer<typeof TransactionFormValidation>) => {
@@ -94,236 +79,54 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ navigation, route }) 
         navigation.goBack();
     };
 
-
-    const handleNumpadPress = useCallback((key: string, onChange: (value: string) => void) => {
-        const currentAmount = getValues('amount');
-
-        const initValue = '0.00'
-        const isDeleting = key === 'delete';
-        const isDecimal = key === '.';
-        const isInitialValue = currentAmount === initValue;
-        const lastCharIsDecimal = currentAmount.at(-1) === '.';
-        const hasDecimal = currentAmount.includes('.');
-        const oneLenght = currentAmount.length === 1;
-        const zero = currentAmount === '0'
-
-        if (isDecimal && (lastCharIsDecimal || hasDecimal)) return;
-        if (isInitialValue && isDeleting) return;
-        if (oneLenght && isDeleting) return onChange(initValue);
-        if (isInitialValue && !isDeleting) return onChange(key);
-        if (isDeleting) return onChange(currentAmount.slice(0, -1));
-        if (zero && !isDecimal) return onChange('0.' + key);
-
-        onChange(currentAmount + key);
-    }, []);
-
     if (selectedAction !== 'description' && descriptionRef.current?.isFocused) {
         descriptionRef.current?.blur();
     }
 
     const onDescriptionPress = useCallback(() => {
         if (selectedAction !== 'description')
-            setSelectedAction('description')
+            setTimeout(() => {
+                setSelectedAction('description')
+
+            }, 500)
     }, [selectedAction])
 
     const onNotFoundPress = () => {
-
-        if (descriptionRef.current?.focus) { descriptionRef.current?.blur(); }
+        if (descriptionRef.current?.isFocused) { descriptionRef.current?.blur(); }
         descriptionRef.current?.focus();
     }
+
     return (
         <Layout style={styles.container}>
             <View style={styles.formContainer}>
                 <ImageBackground source={require('../../assets/card-bg.jpg')} resizeMode="cover" style={styles.data}>
                     <PageHeader type={type} setType={(type) => setType(type)} />
-                    <View style={styles.dataContiner}>
-                        <Button
-                            variant='ghost'
-                            style={{
-                                paddingLeft: 0,
-                                paddingVertical: 0,
-                            }}
-                            containerStyle={{
-                                flexDirection: 'row',
-                                paddingLeft: 0,
-                            }}
-                            onPress={() => setSelectedAction('date')}
-                            icon={{
-                                name: 'calendar',
-                                size: 18,
-                                color: 'white',
-                                containerStyle: {
-                                    paddingHorizontal: 0,
-                                }
-                            }}
-                            textStyle={{
-                                color: 'white',
-                                fontSize: 17,
-                            }}
-                        >
-                            {new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' }).format(
-                                watched[0]
-                            )}
-                        </Button>
-
-                        <Button
-                            variant='ghost'
-                            style={{
-                                paddingLeft: 0,
-                                paddingVertical: 0,
-                            }}
-                            containerStyle={{
-                                paddingLeft: 0,
-                            }}
-                            onPress={() => setSelectedAction('₴')}
-                        >
-                            <Text style={{
-                                fontWeight: '900',
-                                fontSize: 20,
-                                color: 'white',
-                                marginRight: 10
-                            }}>
-                                ₴
-                            </Text>
-                            <Text style={{
-                                fontWeight: 'bold',
-                                fontSize: 20,
-                                color: watched[1] === '0.00' ? '#eee' : 'white',
-                            }}>
-                                {`${watched[1]}`}
-                            </Text>
-                        </Button>
-
-                        <Controller
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        style={{ flex: 1 }}>
+                        <TransactionFields
                             control={control}
-                            name="description"
-                            render={({ field: { onChange, onBlur, value } }) => (
-                                <View style={styles.inputRow}>
-                                    <Icon name="edit" size={18} color="white" style={styles.inputIcon} />
-                                    <TextInput
-                                        ref={descriptionRef}
-                                        placeholder="Назва транзакції"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        onBlur={onBlur}
-                                        style={styles.description}
-                                        placeholderTextColor="white"
-                                        onPress={onDescriptionPress}
-                                    />
-                                </View>
-                            )}
+                            date={watched[0]}
+                            amount={watched[1]}
+                            desctription={watched[2]}
+                            selectedAction={selectedAction}
+                            setSelectedAction={setSelectedAction}
                         />
-
-                    </View>
-
+                    </KeyboardAvoidingView>
                 </ImageBackground>
-                <ActionButtons disabled={!isDirty} style={{ alignSelf: 'flex-end', direction: 'rtl', flexWrap: 'nowrap', marginHorizontal: 24, }} shape='roundedFull' type={type} handleSave={handleSubmit(onSubmit)} />
                 <HiddeOnKeyboard>
-                    <Tabs style={styles.actionsContainer} tabs={tabButtons} defaultValue='₴'>
-                        <TabPanels style={styles.actionsViews}>
-                            <TabPanel<TabButtonType> value='₴'>
-                                <Controller
-                                    control={control}
-                                    name="amount"
-                                    render={({ field: { onChange, } }) => (
-                                        <Numpad onKeyPress={(key) => handleNumpadPress(key, onChange)} />
-                                    )}
-                                />
-                            </TabPanel>
-                            <TabPanel<TabButtonType> value='description'>
-                                <Controller
-                                    control={control}
-                                    name='description'
-                                    render={({ field: { onChange } }) => (
-                                        <TransactionNamePicker
-                                            onNotFoundPress={onNotFoundPress}
-                                            onNamePress={(name) => { onChange(name) }}
-                                        />
-                                    )}
-                                />
-                            </TabPanel>
-                            <TabPanel<TabButtonType> value='date'>
-                                <Controller
-                                    control={control}
-                                    name="date"
-                                    render={({ field: { onChange, value } }) => (
-                                        <DateTimePicker
-                                            onChange={({ date: dateStr }) => {
-                                                const date = new Date(dateStr as string);
-                                                onChange(date)
-                                            }}
-                                            date={value}
-                                            calendarTextStyle={{
-                                                color: '#7e47ff'
-                                            }}
-                                            weekDaysTextStyle={{ color: '#49169c' }}
-                                            selectedItemColor='#7e47ff'
-                                            headerButtonColor='#5818bf'
-                                            headerTextStyle={{ color: '#7e47ff' }}
-                                            mode='single'
-                                            locale={'uk'}
-                                            maxDate={currentDate}
-                                            firstDayOfWeek={1}
-                                            timePicker
-                                            height={180}
-                                            selectedTextStyle={{
-                                                fontWeight: 'bold',
-                                            }}
-
-                                        />
-                                    )}
-                                />
-                            </TabPanel>
-                            <TabPanel<TabButtonType> value='account'>
-                                <Controller
-                                    control={control}
-                                    name="accountId"
-                                    render={({ field: { onChange, value } }) => (
-                                        <WalletSelector onSelectAccount={onChange} accountId={value} />
-                                    )}
-                                />
-                            </TabPanel>
-                        </TabPanels>
-                        <TabsList<TabButtonType>
-                            style={styles.tabController}
-                            renderActiveTrigger={(child) => (
-                                <View >
-                                    {child}
-                                    <View style={{
-                                        position: 'absolute',
-                                        bottom: 5,
-                                        alignSelf: 'center',
-                                        width: '40%',
-                                        borderWidth: 1.5,
-                                        borderRadius: 10,
-                                        borderColor: '#7e47ff'
-                                    }} />
-                                </View>
-                            )}
-                            renderTrigger={({ tab: { value, button, icon }, isActive, changeTab }) => (
-                                value !== '₴' ? (
-                                    <TabButton
-                                        key={value}
-                                        button={button}
-                                        icon={icon}
-                                        onKeyPress={changeTab}
-                                        isActive={isActive}
-                                    />) : (
-                                    <TabSymbolIconButton
-                                        key={value}
-                                        button={'Сума'}
-                                        onKeyPress={changeTab}
-                                        iconSign={value}
-                                        isActive={isActive}
-                                    />
-                                )
-                            )}
-                        />
-                    </Tabs>
-
+                    <ActionButtons disabled={!isValid} style={{ alignSelf: 'flex-end', direction: 'rtl', flexWrap: 'nowrap', marginHorizontal: 24, }} shape='roundedFull' type={type} handleSave={handleSubmit(onSubmit)} />
+                </HiddeOnKeyboard>
+                <HiddeOnKeyboard>
+                    <ActionsTabs
+                        selectedAction={selectedAction}
+                        changeTab={(tab) => { setSelectedAction(tab) }}
+                        control={control}
+                        getValues={getValues}
+                        currentDate={currentDate}
+                    />
                 </HiddeOnKeyboard>
             </View>
-
             <LinearGradient
                 colors={['transparent', '#c2b1ff']}
                 style={styles.background}
@@ -332,18 +135,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ navigation, route }) 
     );
 };
 
-const CustomTabTrigger = ({ isActive, children }: { isActive: boolean; children: React.ReactNode }) => {
-    return (
-        <View>
-            <Text style={{ color: isActive ? 'blue' : 'gray' }}>{children}</Text>
-        </View>
-    );
-};
-
 const PageHeader = ({ type, setType }: { type: TransactionType, setType: (newType: TransactionType) => void }) => {
     return (
         <>
-            <View style={styles.footer}>
+            <View style={styles.header}>
                 <Header />
                 <TransactionTypeSwitcher
                     style={styles.typeSwitcher}
@@ -393,6 +188,9 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderColor: 'white',
     },
+    inputRowContainer: {
+        flexDirection: 'column',
+    },
     inputRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -437,7 +235,7 @@ const styles = StyleSheet.create({
         zIndex: -1,
         height: 500,
     },
-    footer: {
+    header: {
         flexDirection: 'row',
         justifyContent: 'space-evenly',
     },

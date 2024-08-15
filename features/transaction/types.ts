@@ -2,7 +2,7 @@ import { BankApiUrlsType, BankList } from "../api/config";
 
 export interface TransactionDto {
     amount: number;
-    balance: number;
+    balance?: number;
     cashbackAmount?: number;
     commissionRate?: number;
     currencyCode?: number;
@@ -32,3 +32,13 @@ export interface BankAccountTransactionsRequestArgs extends BankRequestArgs {
     from: number,
     to: number,
 }
+
+export interface BankAccountTransactionsRequestArgs2 extends BankRequestArgs {
+    accounts: {
+        id: string,
+        lastSync: number,
+    }[],
+    from: number,
+    to: number,
+}
+

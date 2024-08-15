@@ -1,29 +1,27 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSelector, createSlice, EntityState, PayloadAction } from "@reduxjs/toolkit";
 import { createCashAccount, getAccounts, updateAccountInDb } from "./thunks";
 import { Account } from "./types";
 import Helper from "../../helper";
+import { RootState } from "../../store";
 
 type StateType = {
-    accounts: Account[]
     loading: boolean,
     error: null | string | object | unknown,
 }
 
-const initState: StateType = {
-    accounts: [],
+const adapter = createEntityAdapter<Account>()
+
+const initState: EntityState<Account, string> & StateType = adapter.getInitialState({
     loading: false,
     error: null,
-};
+});
 
 const accountsSlice = createSlice({
     name: 'account',
     initialState: initState,
     reducers: {
         updateAccounts: (state, { payload: accounts }: PayloadAction<Account[]>) => {
-            accounts.forEach(transaction => {
-                const predicate = (item: Account) => item.id === transaction.id;
-                state.accounts = Helper.Array.upsert(state.accounts, transaction, predicate);
-            });
+            adapter.upsertMany(state, accounts);
         }
     },
     extraReducers: (builder) => {
@@ -32,8 +30,8 @@ const accountsSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(getAccounts.fulfilled, (state, { payload }) => {
-                state.accounts.push(...payload);
+            .addCase(getAccounts.fulfilled, (state, { payload: accounts }) => {
+                adapter.setAll(state, accounts);
                 state.loading = false;
             })
             .addCase(getAccounts.rejected, (state, action) => {
@@ -50,10 +48,26 @@ const accountsSlice = createSlice({
             })
             .addCase(createCashAccount.fulfilled, (state, action) => {
                 state.loading = false;
-                state.accounts.push(action.payload);
+                adapter.addOne(state, action.payload);
             })
     },
 })
+
+export const {
+    selectAll: selectAllAccounts,
+    selectById: selectAccountById,
+    selectIds: selectAccountsIds
+} = adapter.getSelectors((state: RootState) => state.accounts)
+
+export const selectCashAccounts = createSelector(
+    [selectAllAccounts],
+    (accounts => accounts.filter(account => account.type === 'cash'))
+)
+
+export const selectBankAccounts = createSelector(
+    [selectAllAccounts],
+    (accounts => accounts.filter(account => account.type === 'bank'))
+)
 
 export const { updateAccounts } = accountsSlice.actions;
 export default accountsSlice.reducer;

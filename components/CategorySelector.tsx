@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Dimensions, FlatList, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { CategoryHelper } from '../helper/category';
-import Button from './Button';
 import BottomSheet from '../modal/BottomSheet';
 import { colors } from './TransactionTypeSwitcher';
 import Search from './Search';
+import Button from './button/Button';
 
 
 const { width } = Dimensions.get('window'); // Отримуємо ширину екрану
@@ -33,33 +33,33 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ type, value, onSele
     }, [])
     return (
         <View style={{ flex: 1 }}>
-            <Button containerStyle={{
-                flexDirection: 'row',
-                columnGap: 10,
-
-            }}
-                onPress={() => setModalVisible(true)}
-            >
-                <View style={{
-                    backgroundColor: "#522da86f",
+            <Button
+            variant='ghost'
+                containerStyle={{
                     flexDirection: 'row',
-                    width: 40,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    aspectRatio: 1,
-                    borderRadius: 20
-                }}>
-                    <MaterialIcons name='shopping-cart' color={'white'} size={25} />
+                    columnGap: 10,
 
-                </View>
-                <View>
-                    <Text style={{ color: '#8307f7', fontSize: 13 }}>
-                        Категорія
-                    </Text>
-                    <Text style={{ color: "#512DA8", fontSize: 15 }}>
-                        {value}
-                    </Text>
-                </View>
+                }}
+                onPress={() => setModalVisible(true)}
+                icon={{
+                    name: 'shopping-cart',
+                    size: 25,
+                    color: 'white',
+                    containerStyle: {
+                        backgroundColor: "#522da86f",
+                        flexDirection: 'row',
+                        width: 40,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        aspectRatio: 1,
+                        borderRadius: 20
+                    }
+                }}
+            >
+                Категорія {'\n'}
+                <Text style={{ color: "#512DA8", fontSize: 15 }}>
+                    {value}
+                </Text>
             </Button>
 
             <BottomSheet
@@ -74,7 +74,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ type, value, onSele
 
                         showsVerticalScrollIndicator
                         initialNumToRender={20}
-                        
+
                         style={{
                             height: 400,
                             backgroundColor: '#eee',

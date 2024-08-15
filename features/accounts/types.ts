@@ -26,6 +26,7 @@ export type Account = {
     id: string,
     name: string,
     balance: number,
+    lastSync?: number,
     type: 'cash' | 'bank',
 }
 

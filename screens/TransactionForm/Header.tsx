@@ -1,39 +1,43 @@
-import { View } from "react-native"
-import Button from "../../components/Button"
+import { Alert, View } from "react-native"
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Button from "../../components/button/Button";
+import { useNavigation } from "@react-navigation/native";
 
 type Props = {
-    onExit: () => void,
-    children?: React.ReactNode,
+    onExit?: () => void,
 }
 
-const Header = ({ onExit, children }: Props) => {
+const Header = ({ onExit }: Props) => {
+    const navigation = useNavigation();
+    const handleExit = () => {
+        Alert.alert(
+            "Підтвердження",
+            "Ви впевнені, що хочете вийти?",
+            [
+                {
+                    text: "Скасувати",
+                    style: "cancel"
+                },
+                { text: "Вийти", onPress: () => navigation.goBack() }
+            ],
+            { cancelable: false }
+        );
+        if (onExit) onExit();
+    };
     return (
-        <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 40,
-            paddingLeft: 16,
-            paddingBottom: 15,
-            marginHorizontal: -16,
-            borderBottomWidth: 1,
-            borderColor: 'rgba(82, 45, 168, 0.5)',
-        }}>
             <Button
-                onPress={onExit}>
-                <MaterialIcons
-                    name="close"
-                    size={30}
-                    color={'#512DA8'}
-                />
-            </Button>
-            <View style={{
-                flex: 1,
-            }}>
-                {children}
-            </View>
-
-        </View>
+                variant='ghost'
+                onPress={handleExit}
+                size="icon"
+                style={{
+                    padding: 0
+                }}
+                icon={{
+                    name: "close",
+                    size: 28,
+                    color: '#512DA8',
+                }}
+            />
     )
 }
 

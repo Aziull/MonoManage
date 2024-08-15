@@ -1,52 +1,29 @@
 import { Text } from "react-native"
-import Button from "../../components/Button"
 import { useKeyboardVisible } from "../../hook/useKeyboardVisible"
 import { StyleSheet } from "react-native"
 import { colors } from "./constants"
+import Button, { ButtoPropsType } from "../../components/button/Button"
 
 type Props = {
     type: 'expense' | 'income',
     handleSave: () => void,
-}
+} & ButtoPropsType
 
-const ActionButtons = ({ type, handleSave }: Props) => {
+const ActionButtons = ({ type, handleSave, style, ...props }: Props) => {
     const isKeyboardVisable = useKeyboardVisible()
 
     return (<>
-        {
-            !isKeyboardVisable && (<Button style={({ pressed }) => [
-                styles.actionButton,
-                 { backgroundColor: type === 'expense' ? colors.expense : colors.income}
+        <Button
+            size="sm"
+            style={[
+                style,
             ]}
-                onPress={handleSave}>
-                <Text style={styles.actionButtonText}>Зберегти</Text>
-            </Button>
-            )
-        }
+            onPress={handleSave}
+             {...props}
+             >
+            Зберегти
+        </Button>
     </>)
 }
-
-const styles = StyleSheet.create({
-    actionButton: {
-        marginVertical: 10,
-        padding: 15,
-        borderRadius: 5,
-        alignItems: 'center',
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    actionButtonText: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-});
-
 
 export default ActionButtons;

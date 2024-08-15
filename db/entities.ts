@@ -8,10 +8,10 @@ export interface User extends BaseModel {
 
 export interface Account extends BaseModel {
     name: string;
-    balance: number; // REAL в SQLite відповідає number в TypeScript
-    userId: string; // Зв'язок з таблицею Users
-    lastSync?: null | string | Date | number;
-    type: 'cash' | 'bank'; // Тип рахунку (cash або bank)
+    balance: number;
+    userId: string;
+    lastSync?: number;
+    type: 'cash' | 'bank';
     updatedAt?: number;
 }
 
@@ -28,8 +28,11 @@ export interface Transaction extends BaseModel {
     originalMcc?: number;
     receiptId?: string;
     time: number;
-    accountId: string; // Зв'язок з таблицею Accounts
+    accountId: string;
     deleted: boolean;
+}
 
-
+export type TransactionsFrequency = {
+    description: string;
+    frequency: number;
 }
