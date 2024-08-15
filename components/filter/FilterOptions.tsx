@@ -1,34 +1,26 @@
 import { Animated, Dimensions, ScrollView, StyleSheet } from "react-native";
 import FilterOption from "./filterOption";
 import Timeframe from "./criteria/Timeframe";
-import { useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { useKeyboardVisible } from "../../hook/useKeyboardVisible";
 import Accounts from "./criteria/accounts/Accounts";
 
+type Filter = {
+    name: string,
+    onPress: () => void,
+    Component: React.FC<{ close: () => void }>;
+}
 
-const filters = [
+const filters: Filter[] = [
     { name: "За періодом", onPress: () => { }, Component: Timeframe },
-    { name: "За рахунками", onPress: () => { }, Component: Accounts },
+    // { name: "За рахунками", onPress: () => { }, Component: Accounts },
     // { name: "За категоріями", onPress: () => { }, Component: Timeframe, apply: () => { } },
 ]
 
-const FilterOptions = ({ visible }: { visible: boolean }) => {
-    const heightAnim = useRef(new Animated.Value(0)).current;
+const FilterOptions = () => {
 
-    useEffect(() => {
-        Animated.timing(heightAnim, {
-            toValue: visible ? 1 : 0,
-            duration: 300,
-            useNativeDriver: false,
-        }).start();
-    }, [visible, heightAnim]);
-
-    const interpolatedHeight = heightAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 40],
-    })
     return (
-        <Animated.ScrollView keyboardShouldPersistTaps="always" horizontal contentContainerStyle={[styles.filterContainer]} style={[{ height: interpolatedHeight }]} >
+        <Animated.ScrollView keyboardShouldPersistTaps="always" horizontal contentContainerStyle={[styles.filterContainer]} >
             {
                 filters.map((filter, index) => (
                     <FilterOption key={index} name={filter.name} onPress={filter.onPress} Component={filter.Component} />
@@ -40,9 +32,8 @@ const FilterOptions = ({ visible }: { visible: boolean }) => {
 
 const styles = StyleSheet.create({
     filterContainer: {
-        padding: 5,
+        paddingHorizontal: 8,
         gap: 5,
-        height: 40,
     },
 });
 

@@ -2,7 +2,6 @@ import Checkbox from "expo-checkbox";
 import { Pressable, Text, ViewStyle } from "react-native";
 import { View } from "react-native";
 import { Account } from "../../../../features/accounts/types";
-import Button from "../../../Button";
 import { useEffect, useRef, useState } from "react";
 import AccountItem from "./accountItem";
 

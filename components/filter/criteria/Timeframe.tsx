@@ -1,37 +1,28 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Button from "../../Button";
 import { useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
 import DatePickerModal, { Range as RangeModal } from "../../../modal/DatePickerModal";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { setDateRange } from "../../../features/filter/slice";
-import dayjs from "dayjs";
 import { convertToDate } from "../../../features/filter/lib";
+import Button from "../../button/Button";
+import { colors } from "../../../theme";
+import { RangeNames } from "../../../features/filter/types";
 type Range = {
-    title: string;
+    title: RangeNames;
     fromDate?: Date;
     toDate?: Date;
 };
 
-const formatDate = (date: Date): string => {
-    date = new Date(date);
-    const months = ['січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов', 'лис', 'гру'];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-    return `${day} ${month}, ${year}`;
-};
-
 const renderDate = (date?: Date): string => {
-    return date ? formatDate(date) : '-';
+    return date ? new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: '2-digit', year: 'numeric' }).format(date) : '-';
 };
-
-
+const currentDate = new Date();
 const ranges: Range[] = [
     {
         title: "Вручну",
-        fromDate: undefined,
+        fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
         toDate: undefined,
     },
     {
@@ -51,16 +42,18 @@ const ranges: Range[] = [
     }
 ];
 
-const Timeframe = () => {
-    const [selectedRange, setSelectedRange] = useState<Range | null>(ranges[0]);
-    const { dateRange } = useSelector((state: RootState) => state.filters)
+const Timeframe = ({ close }: { close: () => void }) => {
+    const { timeframe } = useSelector((state: RootState) => state.filters);
+    const [selectedRange, setSelectedRange] = useState<Range | null>(ranges.find(range => range.title === timeframe.title)!);
+
     useEffect(() => {
         setSelectedRange(prev => ({
             ...prev,
-            fromDate: dateRange.start,
-            toDate: dateRange.end,
+            fromDate: timeframe.start,
+            toDate: timeframe.end,
         }) as Range)
     }, [])
+
     const [isShowModal, setIsShowModal] = useState(false)
 
     const dispatch = useDispatch();
@@ -86,25 +79,51 @@ const Timeframe = () => {
 
 
     //todo: можливо перенести на рівень вище
-    const apply = () => {
+    const apply = (title: RangeNames) => {
+
         dispatch(setDateRange({
             start: convertToDate(selectedRange?.fromDate)?.getTime(),
             end: convertToDate(selectedRange?.toDate)?.getTime(),
+            title
         }))
-
+        close();
     }
-
-    const disabled = !selectedRange?.fromDate || !selectedRange.toDate
+    const disabled = !selectedRange?.fromDate && !selectedRange?.toDate;
     return (
         <View style={{ alignItems: 'center' }}>
+            <Button
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    padding: 0,
+                }}
+                containerStyle={{
+                    padding: 0
+                }}
+                onPress={() => {
+                    setSelectedRange(ranges[0]);
+                }}
+                size='sm'
+                variant='ghost'>
+                Скинути
+            </Button>
             <Text style={styles.headerText}>Період</Text>
             <View style={styles.timeContainer}>
-                <Button style={styles.dateSelect} onPress={() => setIsShowModal(true)}>
-                    <Text style={styles.label}>Від</Text>
+                <Button
+                    variant={'ghost'}
+                    color={colors.purple[200]}
+                    onPress={() => setIsShowModal(true)}
+                >
+                    <Text style={styles.label}>Від{" "} </Text>
                     <Text style={styles.date}>{renderDate(selectedRange?.fromDate)}</Text>
                 </Button>
-                <Button style={styles.dateSelect} onPress={() => setIsShowModal(true)} >
-                    <Text style={styles.label}>До</Text>
+                <Button
+                    variant={'ghost'}
+                    color={colors.purple[200]}
+                    onPress={() => setIsShowModal(true)}
+                >
+                    <Text style={styles.label}>До{" "}</Text>
                     <Text style={styles.date}>{renderDate(selectedRange?.toDate)}</Text>
                 </Button>
 
@@ -116,12 +135,13 @@ const Timeframe = () => {
                     locale: 'uk',
                     params: {
                         startDate: selectedRange?.fromDate,
-                        endDate: selectedRange?.toDate,
+                        endDate: (selectedRange?.toDate && selectedRange?.toDate > currentDate) ? currentDate : selectedRange?.toDate,
                     }
                 }}
                 modalProps={{
                     visible: isShowModal,
                 }}
+
                 onSubmit={onSubmit}
                 cancel={() => setIsShowModal(false)}
             />
@@ -151,7 +171,6 @@ const Timeframe = () => {
             </View>
 
             <Button style={{
-                backgroundColor: disabled ? 'rgba(82, 45, 168, 0.5)' : '#512DA8',
                 width: '100%',
                 padding: 13,
                 alignItems: 'center',
@@ -159,12 +178,10 @@ const Timeframe = () => {
                 marginBottom: 40
             }}
                 disabled={disabled}
-                onPress={apply}
+                onPress={() => apply(selectedRange?.title || "Вручну")}
+
             >
-                <Text style={{
-                    color: '#EDE7F6',
-                    fontSize: 18,
-                }}>Застосувати</Text>
+                Застосувати
             </Button>
 
         </View >
@@ -173,9 +190,9 @@ const Timeframe = () => {
 
 const styles = StyleSheet.create({
     headerText: {
-        color: '#673AB7',
+        color: colors.purple[950],
         fontSize: 17,
-        marginBottom: 10,
+        marginBottom: 18,
     },
     timeContainer: {
         flexDirection: "row",
@@ -184,17 +201,17 @@ const styles = StyleSheet.create({
     },
     dateSelect: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: colors.purple[50],
         borderRadius: 10,
 
         padding: 10
 
     },
     label: {
-        color: "#9575CD",
+        color: colors.purple[950]
     },
     date: {
-        color: "#512DA8"
+        color: colors.purple[700],
     },
     radioButton: {
         flexDirection: 'row',
@@ -207,7 +224,7 @@ const styles = StyleSheet.create({
         width: 20,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: "#512DA8",
+        borderColor: colors.purple[700],
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 10,
@@ -216,11 +233,11 @@ const styles = StyleSheet.create({
         height: 12,
         width: 12,
         borderRadius: 6,
-        backgroundColor: "#512DA8",
+        backgroundColor: colors.purple[700],
     },
     radioText: {
         fontSize: 16,
-        color: "#512DA8",
+        color: colors.purple[700],
     },
 })
 

@@ -1,8 +1,8 @@
 import { Text, View } from "react-native"
-import Button from "../../../Button"
 import Checkbox from "expo-checkbox"
 import { Account } from "../../../../features/accounts/types"
 import { useEffect, useState } from "react"
+import Button from "../../../button/Button"
 
 type PropsType = {
     account: Account,
@@ -15,43 +15,29 @@ const AccountItem = ({ account, selected, onSelectChange }: PropsType) => {
         onSelectChange(account.id);
     };
 
-    return <Button
-        onPress={() => { handleSelectionChange() }}
-        containerStyle={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-        }}>
-        <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            columnGap: 15,
-        }}>
-            <View style={{
-                backgroundColor: "#512DA8",
-                borderRadius: 20,
-                width: 40,
-                height: 40,
-            }} />
+    return <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 15,
+    }}>
+        <Button
+            variant={'secondary'}
+            width="full"
+            align='left'
+            onPress={() => { handleSelectionChange() }}
+        >
+            {account.name}
 
-            <Text
+            <Checkbox
+                value={selected}
+                onValueChange={() => handleSelectionChange()}
                 style={{
-                    fontSize: 16,
-                    color: '#673AB7',
+                    borderRadius: 6,
                 }}
-            >
-                {account.name}
-            </Text>
-        </View>
-        <Checkbox
-            value={selected}
-            onValueChange={() => handleSelectionChange()}
-            style={{
-                borderRadius: 6,
-            }}
-            color={"#512DA8"} />
+                color={"#512DA8"} />
+        </Button>
 
-    </Button>
+    </View>
 }
 
 export default AccountItem

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import Button from "../../../Button";
 import { useDispatch, useSelector } from "react-redux";
-import { selectBankAccounts, selectCashAccounts } from "../../../../features/accounts/selectors";
 import { AppDispatch, RootState } from "../../../../store";
 import { setAccountsId } from "../../../../features/filter/slice";
 import AccountsList from "./accountsList";
+import { selectBankAccounts, selectCashAccounts } from "../../../../features/accounts/slice";
+import Button from "../../../button/Button";
 
 const Accounts = () => {
     const [selectedIds, setSelectedIds] = useState<{ bank: string[]; cash: string[] }>({ bank: [], cash: [] });
@@ -44,11 +44,19 @@ const Accounts = () => {
         <View style={styles.container}>
             <Text style={styles.headerText}>Рахунки</Text>
             <View style={styles.actionButtons}>
-                <Button onPress={handleSelectAll} style={styles.selectButton}>
-                    <Text style={styles.buttonText}>Вибрати все</Text>
+                <Button
+                    align="center"
+                    variant={'ghost'}
+                    onPress={handleSelectAll}
+                >
+                    Вибрати все
                 </Button>
-                <Button onPress={handleDeselectAll} style={styles.deselectButton}>
-                    <Text style={styles.buttonText}>Відмінити все</Text>
+                <Button
+                    onPress={handleDeselectAll}
+                    variant={'ghost'}
+                    align={'center'}
+                >
+                    Відмінити все
                 </Button>
             </View>
             <ScrollView style={styles.accountsList}>
@@ -68,16 +76,8 @@ const Accounts = () => {
             </ScrollView>
             <Button
                 onPress={applySelection}
-                style={[
-                    styles.applyButton,
-                    {
-                        backgroundColor: isSelectionEmpty ? 'rgba(82, 45, 168, 0.5)' : '#512DA8',
-                        elevation: 3,
-                        shadowOpacity: 0.1,
-                        shadowRadius: 3,
-                        shadowOffset: { height: 2, width: 0 },
-                    },
-                ]}
+                width="full"
+                size="lg"
                 disabled={isSelectionEmpty}
             >
                 <Text style={styles.applyButtonText}>Застосувати</Text>

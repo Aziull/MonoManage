@@ -1,26 +1,43 @@
 import { StyleSheet, Text, View } from "react-native";
-import Button from "../Button";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import BottomSheet from "../../modal/BottomSheet";
+import Button from "../button/Button";
+import { colors } from "../../theme";
 
 type PropsType = {
     name: string,
     onPress: () => void,
-    Component: () => React.JSX.Element
+    Component: React.FC<{ close: () => void }>;
 }
 
-const FilterOption = ({ name, onPress, Component }: PropsType) => {
+const FilterOption = ({ name, Component }: PropsType) => {
     const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
     const toggleBottomSheet = () => setIsBottomSheetVisible((prev) => !prev);
     return (
         <>
-            <Button onPress={toggleBottomSheet} style={styles.button} containerStyle={styles.buttonContainer} >
-                <Text style={styles.text}> {name} </Text>
-                <MaterialIcons style={styles.icon} name={'keyboard-arrow-down'} size={15} />
+            <Button
+                shape='roundedFull'
+                size={'sm'}
+                variant={'ghost'}
+                onPress={toggleBottomSheet}
+                style={styles.button}
+                textStyle={styles.text}
+                icon={{
+                    name: "chevron-down", size: 16,
+                    color: colors.purple[800],
+                    containerStyle: {
+                        marginRight: 0
+                    }
+                }}
+                containerStyle={{
+                    flexDirection: 'row-reverse',
+                }}
+            >
+                {name}
             </Button>
-            <BottomSheet style={{ backgroundColor: '#EDE7F6' }} isVisible={isBottomSheetVisible} onDismiss={toggleBottomSheet}>
-                <Component />
+            <BottomSheet isVisible={isBottomSheetVisible} onDismiss={toggleBottomSheet}>
+                <Component close={toggleBottomSheet} />
             </BottomSheet>
         </>
 
@@ -30,29 +47,15 @@ const FilterOption = ({ name, onPress, Component }: PropsType) => {
 const styles = StyleSheet.create({
     button: {
         borderWidth: 1,
-        borderColor: "rgba(104, 58, 183, 0.2)",
-        borderRadius: 5,
-        backgroundColor: "#EDE7F6",
-
-        paddingHorizontal: 5, // Додаємо горизонтальний падінг
-        
-        justifyContent: "center", // Вирівнюємо текст та іконку по різних кінцях кнопки
-        alignItems: "center",
-
-        elevation: 3, // Легке збільшення тіні для кращого візуального ефекту
-    },
-    buttonContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-
+        borderColor: colors.purple[300],
+        paddingHorizontal: 8,
     },
     text: {
-        fontSize: 14,
-        color: "#673AB7",
-        flex: 1,
+        fontWeight: 'normal',
+        color: colors.purple[800],
+        fontSize: 16,
     },
     icon: {
-        color: "#673AB7",
         marginLeft: 8, // Додано відступ зліва для іконки
     }
 });
