@@ -1,15 +1,18 @@
-import { DateType } from "react-native-ui-datepicker";
 
-export type RangeNames = "Вручну" | "Місяць" | "Квартал" | "Рік"
+export type RangeNames = "Вручну" | "Місяць" | "Квартал" | "Рік" | "Весь час"
 
 export interface DateRange {
-    start: number | null | undefined;
-    end: number | null | undefined;
+    start?: UnixTimestampSeconds | null;
+    end?: UnixTimestampSeconds | null;
     title: RangeNames
 }
+export type AccountsIds = string[] | undefined;
 
-export interface FiltersState {
+export type ComplexFilters = {
     timeframe: DateRange;
-    accountsId: string[];
+    accountsId: AccountsIds;
+}
+
+export interface FiltersState extends ComplexFilters {
     description: string;
 }

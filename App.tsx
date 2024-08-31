@@ -1,19 +1,18 @@
-import 'react-native-gesture-handler';
 import React, { Suspense } from 'react';
+import 'react-native-gesture-handler';
 
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import AppNavigator from './navigation/AppNavigation';
 import { NavigationContainer } from '@react-navigation/native';
-import { RenamedProvider } from './context/RenamedContext';
+import { SQLiteProvider } from 'expo-sqlite';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
+import Loader from './components/ui/Loader';
+import { migrateDbIfNeeded } from './db';
+import AppNavigator from './navigation/AppNavigation';
 import { persistor, store } from './store';
 import { CustomLightTheme } from './theme';
-import { SQLiteProvider } from 'expo-sqlite';
-import { migrateDbIfNeeded } from './db';
-import Loader from './components/Loader';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function App() {
 
@@ -24,7 +23,7 @@ export default function App() {
           <PersistGate loading={null} persistor={persistor}>
             <NavigationContainer theme={CustomLightTheme}>
               <GestureHandlerRootView style={{ flex: 1, }}>
-                  <AppNavigator />
+                <AppNavigator />
               </GestureHandlerRootView>
             </NavigationContainer >
           </PersistGate>
@@ -34,5 +33,3 @@ export default function App() {
 
   );
 }
-
-const styles = StyleSheet.create({});

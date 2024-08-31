@@ -5,6 +5,10 @@ import { Transaction } from '../../features/transaction/types';
 import Helper from '../../helper';
 import ExpenceCircle from '../../assets/icons/expence-circle';
 import IncomeCircle from '../../assets/icons/income-circle';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { NewTransactionNavigationProp, RootStackParamList } from '../../navigation/types';
+import { colors } from '../../theme';
 
 type PropsType = {
     transaction: Transaction,
@@ -14,7 +18,7 @@ type PropsType = {
 
 
 const RenderItem = memo(({ transaction, action, actionFunc }: PropsType) => {
-
+    const navigation = useNavigation<NewTransactionNavigationProp>();
     return (
         <Pressable
             style={({ pressed }) => [
@@ -24,7 +28,7 @@ const RenderItem = memo(({ transaction, action, actionFunc }: PropsType) => {
                 styles.transactionItem
             ]}
             onPress={() => {
-                //TODO: open edit page
+                navigation.navigate('NewTransaction', { type: transaction.amount > 0 ? 'income' : 'expense', transaction })
             }}
         >
             <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 10 }}>
@@ -36,10 +40,16 @@ const RenderItem = memo(({ transaction, action, actionFunc }: PropsType) => {
                     <Text style={[styles.transactionAmount, transaction.amount > 0 ? styles.positiveAmount : styles.negativeAmount]}>{transaction.amount / 100}</Text>
                 </View>
                 <View style={styles.actions}>
-                    <Pressable onPress={(e) => {
-                        e.stopPropagation();
-                        actionFunc(transaction);
-                    }}>
+                    <Pressable
+                        style={{
+                            padding: 8,
+                            borderRadius: 20,
+                            backgroundColor: colors.purple[100]
+                        }}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            actionFunc(transaction);
+                        }}>
                         <MaterialIcons name={action} size={25} color="#c2b1ff" />
                     </Pressable>
                 </View>

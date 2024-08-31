@@ -20,6 +20,7 @@ export interface Transaction extends BaseModel {
     balance?: number;
     cashbackAmount?: number;
     commissionRate?: number;
+    comment?: string;
     currencyCode?: number;
     description: string;
     hold?: boolean;

@@ -1,8 +1,6 @@
-import React, { ReactNode } from 'react'
-import Button, { ButtoPropsType } from '../button/Button'
-import { StyleSheet, Text } from 'react-native';
-import { colors } from '../TransactionTypeSwitcher';
-import { View } from 'react-native';
+import React, { ReactNode } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Button, { ButtoPropsType } from '../button/Button';
 
 type Type = { isActive?: boolean, button: string, onKeyPress: (key: string) => void } & ButtoPropsType
 
@@ -106,4 +104,4 @@ const makeStyle = (isActive: boolean) => StyleSheet.create({
 
 
 
-export { TabButton, TabSymbolIconButton }
+export { TabButton, TabSymbolIconButton };

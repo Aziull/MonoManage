@@ -1,55 +1,46 @@
+import { useTheme } from '@react-navigation/native';
 import React, { useState } from 'react';
+import { Linking, SafeAreaView, StyleSheet } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
-import { Linking, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../store';
+import Loader from '../components/ui/Loader';
 import { setAuthToken } from '../features/authToken/slice';
 import { getUserAsync } from '../features/user/thunks';
 import { WebScreenProps } from '../navigation/types';
-import { useTheme } from '@react-navigation/native';
-import Loader from '../components/Loader';
+import { AppDispatch } from '../store';
 
 const scripts = `
-        const sendMessage = () => {
-            const element = document.querySelector(".id")?.innerHTML;
-            if (element.length) {
-                window.ReactNativeWebView.postMessage(JSON.stringify(element));
+     const postMessageIfAvailable = (selector, attribute) => {
+        const element = document.querySelector(selector);
+        const value = attribute ? element?.getAttribute(attribute) : element?.textContent;
+        if (value) {
+            window.ReactNativeWebView.postMessage(value);
+            return true;
+        }
+        return false;
+    };
+
+    const observeAndSend = (selector, attribute) => {
+        if (postMessageIfAvailable(selector, attribute)) return;
+
+        const observer = new MutationObserver(() => {
+            if (postMessageIfAvailable(selector, attribute)) {
+                observer.disconnect();
             }
-        };
+        });
 
-        // Функція для обробки змін в DOM
-        const handleMutation = (mutationsList) => {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    sendMessage();
-                }
-            }
-        };
-
-        // Створення MutationObserver
-        const observer = new MutationObserver(handleMutation);
-
-        // Налаштування MutationObserver для відстеження змін в дочірніх елементах body
         observer.observe(document.body, { childList: true, subtree: true });
+    };
 
-        setTimeout(function () {
-            const qrCodeDiv = document.getElementById('qrcode');
-            if (qrCodeDiv) {
-                const element = document.querySelector(".id")?.innerHTML;
-                if (!element.length) {
-                    window.ReactNativeWebView.postMessage(JSON.stringify(qrCodeDiv.title));
-                    return;
-                }
-                sendMessage();
-            }
-        }, 500);
+    observeAndSend('.id');
+    observeAndSend('#qrcode', 'title');
     `;
 
 const WebScreen = ({ route }: WebScreenProps) => {
     const dispatch: AppDispatch = useDispatch();
     const { url } = route.params;
     const [text, setText] = useState("Виконуємо вхід...");
-
+    
     const { colors } = useTheme();
     const styles = makeStyles({ colors });
 
@@ -69,7 +60,9 @@ const WebScreen = ({ route }: WebScreenProps) => {
     }
 
     const onMessage = async (event: WebViewMessageEvent) => {
-        const data = event.nativeEvent.data.slice(1, -1);
+        const data = event.nativeEvent.data;
+        
+
         if (isURL(data)) {
             openLink(data);
             return;
@@ -80,8 +73,9 @@ const WebScreen = ({ route }: WebScreenProps) => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <WebView
+                originWhitelist={['*']}
                 source={{ uri: url }}
                 style={styles.webView}
                 javaScriptEnabled={true}
@@ -89,15 +83,13 @@ const WebScreen = ({ route }: WebScreenProps) => {
                 onMessage={onMessage}
             />
             <Loader text={text} />
-        </View>
+        </SafeAreaView>
     );
 };
 
 const makeStyles = ({ colors }: { colors: any }) => StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
         backgroundColor: colors.background,
     },
     webView: {

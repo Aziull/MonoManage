@@ -1,12 +1,9 @@
+import { ReactNode, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { useSelector } from "react-redux";
-import { Account } from "../../features/accounts/types";
-import { ReactNode, useEffect, useState } from "react";
 import Button, { ButtoPropsType } from "../../components/button/Button";
-import { selectAllAccounts, selectBankAccounts, selectCashAccounts } from "../../features/accounts/slice";
-import { Pressable, Text, View } from "react-native";
-import { StyleSheet } from "react-native";
+import { selectBankAccounts, selectCashAccounts } from "../../features/accounts/slice";
 
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 type Props = {
     accountId: string | null | undefined;

@@ -1,7 +1,6 @@
-import React, { ReactNode } from 'react'
-import { useKeyboardVisible } from '../hook/useKeyboardVisible'
+import React, { ReactNode } from 'react';
 import { ViewStyle } from 'react-native';
-import { View } from 'lucide-react-native';
+import { useKeyboardVisible } from '../hook/useKeyboardVisible';
 
 const HiddeOnKeyboard = ({ invert = false, children, style }: { invert?: boolean, children: ReactNode, style?: ViewStyle }) => {
     const isOpen = useKeyboardVisible();

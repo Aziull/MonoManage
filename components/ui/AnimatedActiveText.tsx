@@ -1,6 +1,5 @@
 import { forwardRef, ReactNode, useEffect, useRef } from "react";
-import { Animated, TextInput, TextInputProps, TextProps } from "react-native";
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { Animated, TextInput, TextProps } from "react-native";
 const FONT_SIZE = 16
 const ACTIVE_FONT_SIZE = 24
 
@@ -46,8 +45,8 @@ const AnimatedActiveTextInput = forwardRef<TextInput, AnimatedTextInputProps>(({
     useEffect(() => {
         Animated.timing(fontSize, {
             toValue: isSelected ? selectedFontSize : initialFontSize,
-            duration: 300, // тривалість анімації у мілісекундах
-            useNativeDriver: false, // `fontSize` не підтримує native driver
+            duration: 300,
+            useNativeDriver: false, 
         }).start();
     }, [isSelected]);
 
@@ -55,7 +54,7 @@ const AnimatedActiveTextInput = forwardRef<TextInput, AnimatedTextInputProps>(({
         <AnimatedTextInput
             ref={ref}
             {...props}
-            style={[style, { fontSize }]} // поєднання стилів користувача зі стилями анімації
+            style={[style, { fontSize }]} 
         />
     );
 })

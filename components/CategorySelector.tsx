@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, FlatList, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Dimensions, FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { CategoryHelper } from '../helper/category';
 import BottomSheet from '../modal/BottomSheet';
-import { colors } from './TransactionTypeSwitcher';
 import Search from './Search';
 import Button from './button/Button';
 

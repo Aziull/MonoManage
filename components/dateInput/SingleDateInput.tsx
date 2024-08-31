@@ -1,8 +1,7 @@
-import { useState } from "react";
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import DatePickerModal, { Single } from "../../modal/DatePickerModal";
 import dayjs, { Dayjs } from "dayjs";
+import { useState } from "react";
 import { StyleSheet, Text } from "react-native";
+import DatePickerModal, { Single } from "../../modal/DatePickerModal";
 import Button from "../button/Button";
 type Props = {
     date: Date

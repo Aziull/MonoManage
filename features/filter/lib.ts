@@ -2,12 +2,27 @@ import dayjs, { Dayjs } from 'dayjs'; // Припускаючи, що ви ви�
 
 export type DateType = string | number | Dayjs | Date | null | undefined;
 
+export const setStartOfDay = (date: Date | null): number | undefined => {
+  if (!date) return undefined;
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  return startOfDay.getTime();
+};
+
+export const setEndOfDay = (date: Date | null): number | undefined => {
+  if (!date) return undefined;
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+  return endOfDay.getTime();
+};
+
+
 export function convertToDate(date: DateType): Date | null {
   if (!date) {
     return null; // Повертаємо null для null або undefined
   }
 
-  if(date instanceof dayjs){
+  if (date instanceof dayjs) {
     return new Date(date.valueOf());
   }
   if (typeof date === 'number') {

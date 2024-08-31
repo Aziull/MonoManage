@@ -1,58 +1,54 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useEffect, useState } from "react";
-import { TouchableOpacity } from "react-native";
-import DatePickerModal, { Range as RangeModal } from "../../../modal/DatePickerModal";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../../store";
-import { setDateRange } from "../../../features/filter/slice";
+import { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useDispatch } from "react-redux";
 import { convertToDate } from "../../../features/filter/lib";
-import Button from "../../button/Button";
-import { colors } from "../../../theme";
+import { setDateRange } from "../../../features/filter/slice";
 import { RangeNames } from "../../../features/filter/types";
+import DatePickerModal, { Range as RangeModal } from "../../../modal/DatePickerModal";
+import { colors } from "../../../theme";
+import DateUtils, { getEndOfCurrentYearUnixTime } from "../../../utils/timeUtils";
+import Button from "../../button/Button";
+import { ComponentProps } from "../FilterOptions";
+import { DEFAULT_VALUES } from "../constants";
 type Range = {
     title: RangeNames;
-    fromDate?: Date;
-    toDate?: Date;
+    start?: UnixTimestampSeconds;
+    end?: UnixTimestampSeconds;
 };
 
-const renderDate = (date?: Date): string => {
-    return date ? new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: '2-digit', year: 'numeric' }).format(date) : '-';
+const renderDate = (date?: UnixTimestampSeconds): string => {
+    return date ? DateUtils.formatters.twoDigitMonthFormatter.format(DateUtils.convertUnixToDate(date)) : '-';
 };
-const currentDate = new Date();
+const currentDate = DateUtils.getCurrentUnixTime()
 const ranges: Range[] = [
     {
         title: "Вручну",
-        fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-        toDate: undefined,
+        start: undefined,
+        end: undefined,
     },
     {
         title: "Місяць",
-        fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-        toDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+        start: DateUtils.getStartOfCurrentMonthUnixTime(),
+        end: DateUtils.getEndOfCurrentMonthUnixTime(),
     },
     {
         title: "Квартал",
-        fromDate: new Date(new Date().getFullYear(), Math.floor(new Date().getMonth() / 3) * 3, 1),
-        toDate: new Date(new Date().getFullYear(), Math.floor(new Date().getMonth() / 3) * 3 + 3, 0),
+        start: DateUtils.getStartOfCurrentQuarterUnixTime(),
+        end: DateUtils.getEndOfCurrentQuarterUnixTime(),
     },
     {
         title: "Рік",
-        fromDate: new Date(new Date().getFullYear(), 0, 1),
-        toDate: new Date(new Date().getFullYear(), 11, 31),
+        start: DateUtils.getStartOfCurrentYearUnixTime(),
+        end: getEndOfCurrentYearUnixTime(),
     }
 ];
 
-const Timeframe = ({ close }: { close: () => void }) => {
-    const { timeframe } = useSelector((state: RootState) => state.filters);
-    const [selectedRange, setSelectedRange] = useState<Range | null>(ranges.find(range => range.title === timeframe.title)!);
+const defaultRange = { title: DEFAULT_VALUES.Timeframe }
+const Timeframe = ({ close, filter }: ComponentProps) => {
+    const timeframe = filter.timeframe;
 
-    useEffect(() => {
-        setSelectedRange(prev => ({
-            ...prev,
-            fromDate: timeframe.start,
-            toDate: timeframe.end,
-        }) as Range)
-    }, [])
+    const [selectedRange, setSelectedRange] = useState<Range>(!timeframe ? defaultRange : timeframe);
+
 
     const [isShowModal, setIsShowModal] = useState(false)
 
@@ -61,34 +57,29 @@ const Timeframe = ({ close }: { close: () => void }) => {
     const handleSelectionChange = (range: Range) => {
         setSelectedRange(prev => ({
             ...range,
-            fromDate: range.fromDate || prev?.fromDate,
-            toDate: range.toDate || prev?.toDate,
+            start: range.start || prev?.start,
+            end: range.end || prev?.end,
         }));
 
-        if (!range.fromDate || !range.toDate) setIsShowModal(true);
+        if (!range.start || !range.end) setIsShowModal(true);
     };
-
     const onSubmit = (range: RangeModal) => {
-        setSelectedRange(prev => ({
-            ...prev,
-            fromDate: range.startDate,
-            toDate: range.endDate,
-        }) as Range)
+
+        setSelectedRange({
+            title: 'Вручну',
+            start: DateUtils.convertToUnix(range.startDate),
+            end: DateUtils.convertToUnix(range.endDate),
+        } as Range)
         setIsShowModal(false);
     }
 
 
-    //todo: можливо перенести на рівень вище
-    const apply = (title: RangeNames) => {
+    const apply = () => {
 
-        dispatch(setDateRange({
-            start: convertToDate(selectedRange?.fromDate)?.getTime(),
-            end: convertToDate(selectedRange?.toDate)?.getTime(),
-            title
-        }))
+        dispatch(setDateRange(selectedRange))
         close();
     }
-    const disabled = !selectedRange?.fromDate && !selectedRange?.toDate;
+
     return (
         <View style={{ alignItems: 'center' }}>
             <Button
@@ -102,7 +93,8 @@ const Timeframe = ({ close }: { close: () => void }) => {
                     padding: 0
                 }}
                 onPress={() => {
-                    setSelectedRange(ranges[0]);
+                    dispatch(setDateRange(defaultRange))
+                    setSelectedRange(defaultRange);
                 }}
                 size='sm'
                 variant='ghost'>
@@ -116,7 +108,7 @@ const Timeframe = ({ close }: { close: () => void }) => {
                     onPress={() => setIsShowModal(true)}
                 >
                     <Text style={styles.label}>Від{" "} </Text>
-                    <Text style={styles.date}>{renderDate(selectedRange?.fromDate)}</Text>
+                    <Text style={styles.date}>{renderDate(selectedRange?.start)}</Text>
                 </Button>
                 <Button
                     variant={'ghost'}
@@ -124,7 +116,7 @@ const Timeframe = ({ close }: { close: () => void }) => {
                     onPress={() => setIsShowModal(true)}
                 >
                     <Text style={styles.label}>До{" "}</Text>
-                    <Text style={styles.date}>{renderDate(selectedRange?.toDate)}</Text>
+                    <Text style={styles.date}>{renderDate(selectedRange?.end)}</Text>
                 </Button>
 
 
@@ -134,8 +126,8 @@ const Timeframe = ({ close }: { close: () => void }) => {
                     mode: 'range',
                     locale: 'uk',
                     params: {
-                        startDate: selectedRange?.fromDate,
-                        endDate: (selectedRange?.toDate && selectedRange?.toDate > currentDate) ? currentDate : selectedRange?.toDate,
+                        startDate: selectedRange?.start ? DateUtils.convertUnixToDate(selectedRange.start) : undefined,
+                        endDate: (selectedRange?.end && selectedRange?.end > DateUtils.getCurrentUnixTime()) ? convertToDate(currentDate) : convertToDate(selectedRange?.end),
                     }
                 }}
                 modalProps={{
@@ -177,8 +169,7 @@ const Timeframe = ({ close }: { close: () => void }) => {
                 borderRadius: 10,
                 marginBottom: 40
             }}
-                disabled={disabled}
-                onPress={() => apply(selectedRange?.title || "Вручну")}
+                onPress={() => apply()}
 
             >
                 Застосувати
@@ -240,5 +231,6 @@ const styles = StyleSheet.create({
         color: colors.purple[700],
     },
 })
+
 
 export default Timeframe;

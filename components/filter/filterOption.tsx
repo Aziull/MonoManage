@@ -1,19 +1,16 @@
-import { StyleSheet, Text, View } from "react-native";
-import { useCallback, useRef, useState } from "react";
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { StyleSheet } from "react-native";
+import { memo, useState } from "react";
 import BottomSheet from "../../modal/BottomSheet";
 import Button from "../button/Button";
 import { colors } from "../../theme";
+import { Filter } from "./FilterOptions";
 
-type PropsType = {
-    name: string,
-    onPress: () => void,
-    Component: React.FC<{ close: () => void }>;
-}
+type PropsType = Filter;
 
-const FilterOption = ({ name, Component }: PropsType) => {
+const FilterOption = memo(({ Component, filterProps, filterLabel, isDefaultLabel }: PropsType) => {
     const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
     const toggleBottomSheet = () => setIsBottomSheetVisible((prev) => !prev);
+
     return (
         <>
             <Button
@@ -21,7 +18,7 @@ const FilterOption = ({ name, Component }: PropsType) => {
                 size={'sm'}
                 variant={'ghost'}
                 onPress={toggleBottomSheet}
-                style={styles.button}
+                style={isDefaultLabel ? styles.button : [styles.button, {borderColor: colors.purple[900]}]}
                 textStyle={styles.text}
                 icon={{
                     name: "chevron-down", size: 16,
@@ -34,15 +31,15 @@ const FilterOption = ({ name, Component }: PropsType) => {
                     flexDirection: 'row-reverse',
                 }}
             >
-                {name}
+                {filterLabel}
             </Button>
             <BottomSheet isVisible={isBottomSheetVisible} onDismiss={toggleBottomSheet}>
-                <Component close={toggleBottomSheet} />
+                <Component filter={filterProps} close={toggleBottomSheet} />
             </BottomSheet>
         </>
 
     );
-};
+});
 
 const styles = StyleSheet.create({
     button: {

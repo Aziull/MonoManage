@@ -1,15 +1,14 @@
-import { createEntityAdapter, createSelector, createSlice, EntityState, PayloadAction } from "@reduxjs/toolkit";
-import { createCashAccount, getAccounts, updateAccountInDb } from "./thunks";
-import { Account } from "./types";
-import Helper from "../../helper";
+import { createEntityAdapter, createSelector, createSlice, EntityState, isAnyOf, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../store";
+import { createCashAccount, getAccounts, upsertAccountsAsync } from "./thunks";
+import { Account } from "./types";
 
 type StateType = {
     loading: boolean,
     error: null | string | object | unknown,
 }
 
-const adapter = createEntityAdapter<Account>()
+const adapter = createEntityAdapter<Account>({})
 
 const initState: EntityState<Account, string> & StateType = adapter.getInitialState({
     loading: false,
@@ -26,30 +25,41 @@ const accountsSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(getAccounts.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(getAccounts.fulfilled, (state, { payload: accounts }) => {
-                adapter.setAll(state, accounts);
-                state.loading = false;
-            })
-            .addCase(getAccounts.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-            .addCase(createCashAccount.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(createCashAccount.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-            .addCase(createCashAccount.fulfilled, (state, action) => {
-                state.loading = false;
-                adapter.addOne(state, action.payload);
-            })
+            .addCase(getAccounts.fulfilled, adapter.setAll)
+            .addCase(createCashAccount.fulfilled, adapter.addOne)
+            .addCase(upsertAccountsAsync.fulfilled, adapter.upsertMany)
+            .addMatcher(
+                isAnyOf(
+                    upsertAccountsAsync.fulfilled,
+                    createCashAccount.fulfilled,
+                    getAccounts.fulfilled
+                ),
+                (state) => {
+                    state.loading = false;
+                }
+            )
+            .addMatcher(
+                isAnyOf(
+                    getAccounts.pending,
+                    createCashAccount.pending,
+                    upsertAccountsAsync.pending,
+                ),
+                (state) => {
+                    state.loading = true;
+                    state.error = null;
+                }
+            )
+            .addMatcher(
+                isAnyOf(
+                    getAccounts.rejected,
+                    upsertAccountsAsync.rejected,
+                    createCashAccount.rejected,
+                ),
+                (state, action) => {
+                    state.loading = false;
+                    state.error = action.payload;
+                }
+            )
     },
 })
 

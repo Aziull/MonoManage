@@ -8,6 +8,7 @@ import WalletSelector from './WalletSelector';
 import { ActionType, TabButtonType } from './TransactionForm';
 import { TabButton, TabSymbolIconButton } from '../../components/numpad/TabButton';
 import { colors } from '../../theme';
+import LockedOverlay from '../../components/ui/LockedOverlay';
 
 interface ActionsTabsProps {
     selectedAction: ActionType;
@@ -15,6 +16,8 @@ interface ActionsTabsProps {
     getValues: (name: string) => string;
     currentDate: Date;
     changeTab: (tab: ActionType) => void;
+    editable: boolean;
+    onNotFoundPress: () => void
 }
 
 const tabButtons: TabButtonType[] = [
@@ -36,7 +39,7 @@ const tabButtons: TabButtonType[] = [
     },
 ];
 
-const ActionsTabs: React.FC<ActionsTabsProps> = ({ selectedAction, control, getValues, currentDate, changeTab }) => {
+const ActionsTabs: React.FC<ActionsTabsProps> = ({ selectedAction, control, getValues, currentDate, changeTab, editable, onNotFoundPress }) => {
     const handleNumpadPress = (key: string, onChange: (value: string) => void) => {
         const currentAmount = getValues('amount');
         const initValue = '0.00';
@@ -65,7 +68,10 @@ const ActionsTabs: React.FC<ActionsTabsProps> = ({ selectedAction, control, getV
                     control={control}
                     name="amount"
                     render={({ field: { onChange, } }) => (
-                        <Numpad onKeyPress={(key) => handleNumpadPress(key, onChange)} />
+                        <View>
+                            <Numpad onKeyPress={(key) => handleNumpadPress(key, onChange)} />
+                            {!editable && <LockedOverlay message='Суму банківських переказів неможливо редагувати' />}
+                        </View>
                     )}
                 />
                 }
@@ -74,30 +80,34 @@ const ActionsTabs: React.FC<ActionsTabsProps> = ({ selectedAction, control, getV
                         control={control}
                         name="date"
                         render={({ field: { onChange, value } }) => (
-                            <DateTimePicker
-                                onChange={({ date: dateStr }) => {
-                                    const date = new Date(dateStr as string);
-                                    onChange(date)
-                                }}
-                                date={value}
-                                calendarTextStyle={{
-                                    color: colors.purple[500]
-                                }}
-                                weekDaysTextStyle={{ color: colors.purple[900] }}
-                                selectedItemColor={colors.purple[500]}
-                                headerButtonColor={colors.purple[800]}
-                                headerTextStyle={{ color: colors.purple[500] }}
-                                mode='single'
-                                locale={'uk'}
-                                maxDate={currentDate}
-                                firstDayOfWeek={1}
-                                timePicker
-                                height={180}
-                                selectedTextStyle={{
-                                    fontWeight: 'bold',
-                                }}
+                            <View>
+                                <DateTimePicker
+                                    onChange={({ date: dateStr }) => {
+                                        const date = new Date(dateStr as string);
+                                        onChange(date)
+                                    }}
+                                    date={value}
+                                    calendarTextStyle={{
+                                        color: colors.purple[500]
+                                    }}
+                                    weekDaysTextStyle={{ color: colors.purple[900] }}
+                                    selectedItemColor={colors.purple[500]}
+                                    headerButtonColor={colors.purple[800]}
+                                    headerTextStyle={{ color: colors.purple[500] }}
+                                    mode='single'
+                                    locale={'uk'}
+                                    maxDate={currentDate}
+                                    firstDayOfWeek={1}
+                                    timePicker
+                                    height={180}
+                                    selectedTextStyle={{
+                                        fontWeight: 'bold',
+                                    }}
 
-                            />
+                                />
+                                {!editable && <LockedOverlay message='Дату банківських переказів неможливо редагувати' />}
+                            </View>
+
                         )}
                     />
                 }
@@ -107,7 +117,7 @@ const ActionsTabs: React.FC<ActionsTabsProps> = ({ selectedAction, control, getV
                         name='description'
                         render={({ field: { onChange } }) => (
                             <TransactionNamePicker
-                                onNotFoundPress={() => { }}
+                                onNotFoundPress={onNotFoundPress}
                                 onNamePress={(name) => { onChange(name) }}
                             />
                         )}

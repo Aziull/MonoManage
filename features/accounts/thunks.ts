@@ -20,19 +20,25 @@ export const getAccounts = createAsyncThunk(
     }
 )
 
-export const updateAccountInDb = createAsyncThunk(
+export const upsertAccountsAsync = createAsyncThunk(
     'accounts/updateInDb',
     async (accounts: Account[], { getState, rejectWithValue }) => {
-        const { user } = (getState() as RootState).auth;
-        if (!user) return rejectWithValue('User not exist');
+        try {
+            const { user } = (getState() as RootState).auth;
+            if (!user) throw Error('User not exist');
+            
+            const accountsInDb = await accountRepository.upsertMany(
+                accounts.map(account => ({
+                    ...account,
+                    userId: user.id,
+                }))
+            )
+            
+            return accountsInDb.map(mapToModel);
+        } catch (error) {
+            return rejectWithValue((error as Error).message || 'Failed to upsert accounts');
+        }
 
-        await accountRepository.upsertMany(
-            accounts.map(account => ({
-                ...account,
-                userId: user.id,
-                updatedAt: Date.now()
-            }))
-        )
     }
 )
 

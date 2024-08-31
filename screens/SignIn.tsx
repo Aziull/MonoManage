@@ -1,22 +1,57 @@
-import React, { useEffect } from 'react';
-import { ActivityIndicator, Alert, Image, StyleSheet, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import React from 'react';
+import { ActivityIndicator, Alert, Image, Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import Button from '../components/button/Button';
 import Layout from '../components/Layout';
 import { getUserAsync } from '../features/user/thunks';
 import { SignInProps } from '../navigation/types';
 import { AppDispatch, RootState } from '../store';
-import Button from '../components/button/Button';
-import { resetAppAction } from '../store/rootReducer';
 const SignIn: React.FC<SignInProps> = ({ navigation }) => {
     const dispatch: AppDispatch = useDispatch();
     const { error, loading } = useSelector((state: RootState) => state.auth);
+
     const handleLoginWithoutBank = async () => {
         dispatch(getUserAsync());
     };
 
-    const handleLoginWithMonobank = () => {
-        navigation.navigate('WebScreen', { url: 'https://api.monobank.ua/' });
+    const openStore = () => {
+        const appStoreUrl = Platform.OS === 'ios'
+            ? 'https://apps.apple.com/ua/app/monobank/id1271828964'
+            : 'market://details?id=ua.com.monobank';
+
+        Linking.openURL(appStoreUrl).catch((err) => {
+            console.error('Error opening app store', err);
+            Alert.alert('Помилка', 'Не вдалося відкрити магазин додатків.');
+        });
+    }
+    const checkMonobankInstalled = async () => {
+        try {
+            if (Platform.OS === 'ios') {
+                return await Linking.canOpenURL('mono://');
+            } else {
+                return await Linking.canOpenURL('app://com.ftband.mono/');
+            }
+        } catch (error) {
+            console.error('Error checking Monobank installation', error);
+            return false;
+        }
+    }
+
+    const handleLoginWithMonobank = async () => {
+        const monobankInstalled = await checkMonobankInstalled();
+        if (monobankInstalled) {
+            navigation.navigate('WebScreen', { url: 'https://api.monobank.ua/' });
+        } else {
+            Alert.alert(
+                'Монобанк не встановлений',
+                'Ви хочете завантажити додаток з магазину?',
+                [
+                    { text: 'Відмінити', style: 'cancel' },
+                    { text: 'Завантажити', onPress: openStore },
+                ]
+            );
+        }
+
     };
 
     if (error) {

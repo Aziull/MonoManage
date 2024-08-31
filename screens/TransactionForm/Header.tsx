@@ -1,7 +1,6 @@
-import { Alert, View } from "react-native"
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Button from "../../components/button/Button";
 import { useNavigation } from "@react-navigation/native";
+import { Alert } from "react-native";
+import Button from "../../components/button/Button";
 
 type Props = {
     onExit?: () => void,

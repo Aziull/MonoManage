@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
-import Button from "../Button"
 import { Text } from "react-native";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Button from "../button/Button";
 type PropsType = {
     onPress: () => void,
     title: string,

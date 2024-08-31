@@ -1,9 +1,6 @@
-import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, TouchableWithoutFeedback, ViewComponent, ViewStyle } from 'react-native';
-import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { Pressable, StyleSheet, TextInput, TouchableOpacity, ViewStyle } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import Button from './button/Button';
-import { debounce } from "lodash";
 type SearchProps = {
     placeholder?: string;
     handleSearch?: () => void,

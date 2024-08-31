@@ -1,7 +1,7 @@
-import React from 'react'
-import Button, { ButtoPropsType } from '../button/Button'
-import { StyleSheet, useWindowDimensions } from 'react-native';
+import React from 'react';
+import { StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import Button, { ButtoPropsType } from '../button/Button';
 
 const NumpadButton = ({ button, onKeyPress, ...props }: { button: string, onKeyPress: (key: string) => void } & ButtoPropsType) => {
     return (

@@ -1,10 +1,10 @@
-import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
+import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { persistReducer, createTransform, persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
+import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE } from 'redux-persist';
 import { expoSecureStoreAdapter } from '../utils/expoSecureStoreAdapter';
 
-import rootReducer from './rootReducer';
 import { baseApi } from '../features/api';
+import rootReducer from './rootReducer';
 
 const persistConfig = {
   key: 'root',

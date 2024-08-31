@@ -1,11 +1,10 @@
-import dayjs, { Dayjs } from "dayjs";
-import React, { useCallback, useEffect, useState } from "react";
-import { Modal, ModalProps, View, StyleSheet, TouchableOpacity, Text, Pressable } from "react-native";
-import DateTimePicker, { DateType } from 'react-native-ui-datepicker';
 import 'dayjs/locale/uk';
+import React, { useCallback, useState } from "react";
+import { Modal, ModalProps, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import DateTimePicker, { DateType } from 'react-native-ui-datepicker';
 import { DatePickeMultipleProps, DatePickerRangeProps, DatePickerSingleProps } from "react-native-ui-datepicker/lib/typescript/src/DateTimePicker";
-import { MultiChange, RangeChange, SingleChange } from "react-native-ui-datepicker/lib/typescript/src/types";
 import { colors } from "../theme";
+import DateUtils from "../utils/timeUtils";
 
 type SingleParam = {
     date: DateType;
@@ -43,7 +42,7 @@ export type Single = {
 
 const DatePickerModal: React.FC<PropsType> = ({ datePickerProps: { params, ...datePickerProps }, modalProps, ...props }) => {
 
-    const [data, setData] = useState<ParamsType | undefined>(undefined)
+    const [data, setData] = useState<ParamsType | undefined>(params)
 
     const { mode } = datePickerProps;
 
@@ -64,9 +63,6 @@ const DatePickerModal: React.FC<PropsType> = ({ datePickerProps: { params, ...da
         props.onSubmit(data);
     }
 
-    useEffect(() => {
-        setData(params);
-    }, [params])
 
     return (
         <Modal
@@ -87,7 +83,7 @@ const DatePickerModal: React.FC<PropsType> = ({ datePickerProps: { params, ...da
                         selectedItemColor={colors.purple[500]}
                         headerButtonColor={colors.purple[800]}
                         headerTextStyle={{ color: colors.purple[500] }}
-                        maxDate={new Date()}
+                        maxDate={DateUtils.convertUnixToDate(DateUtils.getEndOfUnixDay())}
                         firstDayOfWeek={1}
                         {...data}
 

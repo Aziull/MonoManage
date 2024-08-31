@@ -7,13 +7,13 @@ const categoriesFilter = (criteria: FilterCriteria) => (transaction: Transaction
 };
 
 const descriptionFilter = (criteria: FilterCriteria) => (transaction: Transaction) => {
-    return transaction.description.toLowerCase().includes(criteria.description?.toLowerCase() || '') 
+    return transaction.description.toLowerCase().includes(criteria.description?.toLowerCase() || '')
 }
 
 const timeframeFilter = (criteria: FilterCriteria) => (transaction: Transaction) => {
     if (!criteria.timeframe?.start && !criteria.timeframe?.end) return true;
-const {start, end} = criteria.timeframe;
-    const transactionDate = dayjs(transaction.time * 1000);
+    const { start, end } = criteria.timeframe;
+    const transactionDate = dayjs(transaction.time);
     const startDate = dayjs(start);
     const endDate = dayjs(end);
 

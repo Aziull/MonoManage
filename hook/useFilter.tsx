@@ -5,7 +5,6 @@ import { RootState } from '../store';
 const useFilter = (deleted: boolean = false) => {
     const transactions = useSelector((state: RootState) => selectFilteredTransactions(state, deleted));
     const status = useSelector(getTransactionsStatus);
-    console.log('awqe', transactions.length);
     
     return {
         transactions,

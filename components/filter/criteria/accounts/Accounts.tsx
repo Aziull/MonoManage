@@ -1,84 +1,99 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../../../store";
+import { AppDispatch } from "../../../../store";
 import { setAccountsId } from "../../../../features/filter/slice";
 import AccountsList from "./accountsList";
 import { selectBankAccounts, selectCashAccounts } from "../../../../features/accounts/slice";
 import Button from "../../../button/Button";
+import { ComponentProps } from "../../FilterOptions";
 
-const Accounts = () => {
-    const [selectedIds, setSelectedIds] = useState<{ bank: string[]; cash: string[] }>({ bank: [], cash: [] });
-
+const Accounts = ({ close, filter: { accountsId = [] } }: ComponentProps) => {
+    const dispatch: AppDispatch = useDispatch();
     const cashAccounts = useSelector(selectCashAccounts);
     const bankAccounts = useSelector(selectBankAccounts);
-    const { accountsId } = useSelector((state: RootState) => state.filters);
 
-    const dispatch: AppDispatch = useDispatch();
+    const bankIds = useMemo(() => (bankAccounts.map(acc => acc.id)), [bankAccounts]);
+    const cashIds = useMemo(() => (cashAccounts.map(acc => acc.id)), [cashAccounts]);
 
-    useEffect(() => {
-        const cashIds = accountsId.filter(id => cashAccounts.some(account => account.id === id));
-        const bankIds = accountsId.filter(id => bankAccounts.some(account => account.id === id));
-        setSelectedIds({ bank: bankIds, cash: cashIds });
-    }, [accountsId, bankAccounts, cashAccounts]);
+    const defaultSelectedIds = useMemo(() => ({
+        bank: accountsId.length === 0 ? bankIds : accountsId.filter(id => bankIds.some(account => account === id)),
+        cash: accountsId.length === 0 ? cashIds : accountsId.filter(id => cashIds.some(account => account === id)),
+    }), [accountsId, bankIds, cashIds]);
 
-    const handleSelectAll = () => {
+    const [selectedIds, setSelectedIds] = useState<{ bank: string[]; cash: string[] }>(defaultSelectedIds);
+
+    const handleSelectAll = useCallback(() => {
         setSelectedIds({
-            bank: bankAccounts.map(({ id }) => id),
-            cash: cashAccounts.map(({ id }) => id),
+            bank: bankIds,
+            cash: cashIds,
         });
-    };
+    }, [bankIds, cashIds]);
 
-    const handleDeselectAll = () => {
+    const handleDeselectAll = useCallback(() => {
         setSelectedIds({ bank: [], cash: [] });
-    };
+    }, []);
 
-    // Застосування вибраних рахунків
-    const applySelection = () => {
+    const applySelection = useCallback(() => {
         dispatch(setAccountsId([...selectedIds.bank, ...selectedIds.cash]));
-    };
+        close();
+    }, [selectedIds, dispatch, close]);
 
-    const isSelectionEmpty = !selectedIds.bank.length && !selectedIds.cash.length;
+    const isSelectionEmpty = useMemo(() => !selectedIds.bank.length && !selectedIds.cash.length, [selectedIds]);
 
     return (
         <View style={styles.container}>
+            <Button
+                style={styles.resetButton}
+                onPress={handleSelectAll}
+                size='sm'
+                variant='ghost'>
+                Скинути
+            </Button>
             <Text style={styles.headerText}>Рахунки</Text>
             <View style={styles.actionButtons}>
                 <Button
                     align="center"
-                    variant={'ghost'}
+                    variant="ghost"
                     onPress={handleSelectAll}
+                    style={styles.flexButton}
                 >
                     Вибрати все
                 </Button>
                 <Button
+                    align="center"
+                    variant="ghost"
                     onPress={handleDeselectAll}
-                    variant={'ghost'}
-                    align={'center'}
+                    style={styles.flexButton}
                 >
                     Відмінити все
                 </Button>
             </View>
             <ScrollView style={styles.accountsList}>
-                <AccountsList title="Банківські рахунки"
+                <AccountsList
+                    title="Банківські рахунки"
                     accounts={bankAccounts}
-                    update={(ids) => setSelectedIds(prev => ({ ...prev, bank: ids }))}
+                    update={ids => setSelectedIds(prev => ({ ...prev, bank: ids }))}
                     selectedIds={selectedIds.bank}
                 />
-                <AccountsList title="Готівка"
+                <AccountsList
+                    title="Готівка"
                     accounts={cashAccounts}
-                    update={(ids) => setSelectedIds(prev => ({ ...prev, cash: ids }))}
+                    update={ids => setSelectedIds(prev => ({ ...prev, cash: ids }))}
                     selectedIds={selectedIds.cash}
-                    containerStyle={{
-                        marginBottom: 0
-                    }}
+                    containerStyle={styles.lastAccountList}
                 />
             </ScrollView>
             <Button
                 onPress={applySelection}
-                width="full"
-                size="lg"
                 disabled={isSelectionEmpty}
+                style={{
+                    width: '100%',
+                    padding: 13,
+                    alignItems: 'center',
+                    borderRadius: 10,
+                    marginBottom: 40
+                }}
             >
                 <Text style={styles.applyButtonText}>Застосувати</Text>
             </Button>
@@ -98,27 +113,12 @@ const styles = StyleSheet.create({
     },
     actionButtons: {
         flexDirection: 'row',
-        marginHorizontal: -16,
         paddingVertical: 5,
         borderTopWidth: 1,
         borderTopColor: '#ddc8fd',
     },
-    selectButton: {
+    flexButton: {
         flex: 1,
-        alignItems: 'center',
-        borderRightWidth: 1,
-        borderRightColor: '#ddc8fd',
-        paddingVertical: 5,
-    },
-    deselectButton: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: 5,
-    },
-    buttonText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#673AB7',
     },
     accountsList: {
         padding: 15,
@@ -127,8 +127,16 @@ const styles = StyleSheet.create({
         maxHeight: 350,
         backgroundColor: '#ddc8fd',
     },
+    lastAccountList: {
+        marginBottom: 0,
+    },
+    resetButton: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        padding: 0,
+    },
     applyButton: {
-        width: '100%',
         padding: 13,
         alignItems: 'center',
         borderRadius: 10,

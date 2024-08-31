@@ -1,12 +1,13 @@
-import React, { useRef, useCallback } from 'react';
-import { View, StyleSheet, TextInput, Text, FlatList, Pressable } from 'react-native';
+import React, { forwardRef, useCallback } from 'react';
 import { Controller } from 'react-hook-form';
-import Button from '../../components/button/Button';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { ActionType } from './TransactionForm';
-import { useTransactionsNames } from '../../components/TransactionNamePicker';
+import Button from '../../components/button/Button';
 import HiddeOnKeyboard from '../../components/HiddeByKeyboard';
+import { useTransactionsNames } from '../../components/TransactionNamePicker';
 import { AnimatedActiveText, AnimatedActiveTextInput } from '../../components/ui/AnimatedActiveText';
+import { Transaction } from '../../features/transaction/types';
+import { ActionType } from './TransactionForm';
 
 interface TransactionFieldsProps {
     control: any;
@@ -15,10 +16,10 @@ interface TransactionFieldsProps {
     selectedAction: ActionType;
     amount: string;
     setSelectedAction: (action: ActionType) => void;
+    transaction: Transaction | undefined;
 }
 
-const TransactionFields: React.FC<TransactionFieldsProps> = ({ control, date, amount, desctription, selectedAction, setSelectedAction }) => {
-    const descriptionRef = useRef<TextInput>(null);
+const TransactionFields = forwardRef<TextInput, TransactionFieldsProps>(({ transaction, control, date, amount, desctription, selectedAction, setSelectedAction }, descriptionRef) => {
     const transactionsNames = useTransactionsNames();
     const filteredNames = transactionsNames.filter(t => t.description.includes(desctription));
 
@@ -88,6 +89,15 @@ const TransactionFields: React.FC<TransactionFieldsProps> = ({ control, date, am
                                     onPress={() => onChange('')}
                                 />
                             )}
+                            {(!value && transaction) && (
+                                <Button
+                                    style={styles.clearButton}
+                                    size='icon'
+                                    variant='ghost'
+                                    icon={{ name: 'undo', color: '#eee', size: 20 }}
+                                    onPress={() => onChange(transaction.description)}
+                                />
+                            )}
                         </View>
 
                         <HiddeOnKeyboard invert={true}>
@@ -108,7 +118,7 @@ const TransactionFields: React.FC<TransactionFieldsProps> = ({ control, date, am
             />
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     dataContainer: {

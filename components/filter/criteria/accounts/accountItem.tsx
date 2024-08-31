@@ -1,7 +1,6 @@
-import { Text, View } from "react-native"
 import Checkbox from "expo-checkbox"
+import { Text, View } from "react-native"
 import { Account } from "../../../../features/accounts/types"
-import { useEffect, useState } from "react"
 import Button from "../../../button/Button"
 
 type PropsType = {
@@ -25,8 +24,18 @@ const AccountItem = ({ account, selected, onSelectChange }: PropsType) => {
             width="full"
             align='left'
             onPress={() => { handleSelectionChange() }}
+            style={{
+                paddingRight: 0,
+            }}
+            containerStyle={{
+                width: '100%',
+                paddingRight: 12,
+                justifyContent: 'space-between',
+            }}
         >
-            {account.name}
+            <Text>
+                {account.name}
+            </Text>
 
             <Checkbox
                 value={selected}

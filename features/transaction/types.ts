@@ -2,6 +2,7 @@ import { BankApiUrlsType, BankList } from "../api/config";
 
 export interface TransactionDto {
     amount: number;
+    comment?: string;
     balance?: number;
     cashbackAmount?: number;
     commissionRate?: number;
@@ -13,7 +14,7 @@ export interface TransactionDto {
     operationAmount?: number;
     originalMcc?: number;
     receiptId?: string;
-    time: number;
+    time: UnixTimestampSeconds;
 }
 
 export interface Transaction extends TransactionDto {
@@ -26,7 +27,11 @@ export interface BankRequestArgs {
     bankName: BankList,
     requestPath: keyof BankApiUrlsType[keyof BankApiUrlsType]['requestType'],
 }
-
+export interface TransactionsRequestArgs {
+    accountId: string,
+    from: number,
+    to: number,
+}
 export interface BankAccountTransactionsRequestArgs extends BankRequestArgs {
     accountId: string,
     from: number,

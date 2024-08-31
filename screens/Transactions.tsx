@@ -1,45 +1,42 @@
-import React, { useMemo } from 'react'
-import { View, StyleSheet, Text, ImageBackground } from 'react-native'
 import { StatusBar } from 'expo-status-bar';
+import React, { useCallback, useMemo } from 'react';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useDispatch } from 'react-redux';
+import FilterOptions from '../components/filter/FilterOptions';
 import Layout from '../components/Layout';
 import Grouped from '../components/transactionList/Grouped';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { AppDispatch } from '../store';
-import { logout } from '../features/user/userSlice';
+import Search from "../components/transactionSearch/search";
 import { clearAuthToken } from '../features/authToken/slice';
-import { useDispatch } from 'react-redux';
-import Helper from '../helper';
-import { Transaction } from '../features/transaction/types';
-import FilterTransactions from '../widgets/FilterTransactions';
-import { useKeyboardVisible } from '../hook/useKeyboardVisible';
-import useFilter from '../hook/useFilter';
 import { toggleIgnoreTransactionAsyncs } from '../features/transaction/thunks';
+import { Transaction } from '../features/transaction/types';
+import { logout } from '../features/user/userSlice';
+import useFilter from '../hook/useFilter';
+import { useKeyboardVisible } from '../hook/useKeyboardVisible';
+import { statisticsService } from '../lib/services/statistics/StatisticsService';
 import { DeletedTransactionsScreenProps, TransactionsScreenProps } from '../navigation/types';
-import Loader from '../components/Loader';
-import { LinearGradient } from 'expo-linear-gradient';
+import { AppDispatch } from '../store';
 
 const Transactions = ({ route }: TransactionsScreenProps | DeletedTransactionsScreenProps) => {
     const { deleted } = route.params
-
-    const { transactions, status } = useFilter(deleted);
+    const { transactions } = useFilter(deleted);
 
     const isKeyboardVisible = useKeyboardVisible()
 
     const dispatch = useDispatch<AppDispatch>()
 
-    const stats = useMemo(() => (Helper.Tranasctions.generateStatistics(transactions)), [transactions]);
+    const stats = useMemo(() => {
+        return statisticsService.generateStatistics(transactions)
+    }, [transactions]);
 
-    const remove = (transaction: Transaction) => {
+    const remove = useCallback((transaction: Transaction) => {
         dispatch(toggleIgnoreTransactionAsyncs(transaction));
 
-    }
+    }, [])
 
     const handleLogout = () => {
         dispatch(logout())
         dispatch(clearAuthToken())
-    }
-    if (status !== 'idle') {
-        return <Loader text='Видалення...' />
     }
 
     return (
@@ -60,7 +57,10 @@ const Transactions = ({ route }: TransactionsScreenProps | DeletedTransactionsSc
             <View style={styles.container}>
                 <View style={styles.content}>
                     <Grouped transactions={transactions} actionFunc={remove} />
-                    <FilterTransactions />
+                    <View>
+                        <FilterOptions />
+                        <Search />
+                    </View>
                 </View>
             </View>
             < StatusBar style="auto" />

@@ -1,6 +1,7 @@
-import { Account, BaseModel, Transaction, TransactionsFrequency, User } from "./entities";
+import { Account, BaseModel, Transaction, TransactionsFrequency } from "./entities";
 import * as SQLite from 'expo-sqlite';
 import { v4 as uuidv4 } from 'uuid';
+
 interface IRepository<T extends BaseModel> {
     create(item: T): Promise<T | null>;
     getAll(): Promise<T[]>;
@@ -16,7 +17,6 @@ export interface IUpsertManyRepository<T extends BaseModel> {
 
 const db = SQLite.openDatabaseSync('appDatabase.db');
 
-
 export class Repository<T extends BaseModel> implements IRepository<T> {
     protected tableName: string;
 
@@ -24,8 +24,8 @@ export class Repository<T extends BaseModel> implements IRepository<T> {
         this.tableName = tableName;
     }
 
-    getAll(): Promise<T[]> {
-        return db.getAllAsync(`SELECT * FROM ${this.tableName}`)
+    async getAll(): Promise<T[]> {
+        return db.getAllAsync(`SELECT * FROM ${this.tableName}`);
     }
 
     async create(item: Omit<T, 'id'>): Promise<T | null> {
@@ -36,87 +36,113 @@ export class Repository<T extends BaseModel> implements IRepository<T> {
 
         const keys = Object.keys(itemWithId).join(', ');
         const values = Object.values(itemWithId);
-        const placeholders = values.map((_) => `?`).join(', ');
+        const placeholders = values.map(() => `?`).join(', ');
 
         const query = `INSERT INTO ${this.tableName} (${keys}) VALUES (${placeholders}) RETURNING *`;
-        const res = await db.getFirstAsync<T>(query, values);
-        return res;
+        return await db.getFirstAsync<T>(query, values);
     }
 
     async getById(id: string): Promise<T | null> {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
-        const res = await db.getFirstAsync<T>(query, id);
-        return res
+        return await db.getFirstAsync<T>(query, [id]);
     }
 
     async update(id: string, item: Partial<T>): Promise<T | null> {
-        const keys = Object.keys(item);
-        const values = Object.values(item);
-        const setClause = keys.map((key, i) => `${key} = ?`).join(', ');
+        try {
+            const keys = Object.keys(item);
+            const values = Object.values(item);
+            const setClause = keys.map((key) => `${key} = ?`).join(', ');
 
-        const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ? RETURNING *`;
-        const res = await db.getFirstAsync<T>(query, [...values, id]);
-        return res
+            const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ? RETURNING *`;
+            return await db.getFirstAsync<T>(query, [...values, id]);
+        } catch (error) {
+            console.log(`Оновлення ${this.tableName} завершилось з помилкою: ${error}`);
+            return null;
+        }
+
     }
 
     async delete(id: string): Promise<void> {
         const query = `DELETE FROM ${this.tableName} WHERE id = ?`;
-        await db.runAsync(query, id);
+        await db.runAsync(query, [id]);
     }
 
     async upsert(item: T): Promise<T | null> {
-        const existingItem = await this.getById(item.id);
-        if (existingItem) {
-            return this.update(item.id, item as Partial<T>);
-        } else {
-            return this.create(item);
+        const keys = Object.keys(item).join(', ');
+        const values = Object.values(item);
+        const placeholders = values.map(() => '?').join(', ');
+
+        const query = `
+            INSERT OR REPLACE INTO ${this.tableName} (${keys}) 
+            VALUES (${placeholders}) 
+            RETURNING *`;
+
+        try {
+            const result = await db.getFirstAsync<T>(query, values);
+            return result;
+        } catch (error) {
+            console.error(`Помилка при виконанні upsert у таблиці ${this.tableName}:`, error);
+            return null;
         }
     }
 }
 
 export class UpsertManyRepository<T extends BaseModel> extends Repository<T> implements IUpsertManyRepository<T> {
     async upsertMany(items: T[]): Promise<T[]> {
-        await db.runAsync('BEGIN TRANSACTION');
         try {
-            const promises = items.map(item => this.upsert(item));
-            const results = await Promise.all(promises);
+            await db.withExclusiveTransactionAsync(async (txn) => {
+                for (const item of items) {
+                    const keys = Object.keys(item);
+                    const values = keys.map(key => item[key as keyof T]);
+                    const placeholders = keys.map(() => '?').join(', ');
 
-            const isValid = results.every(result => result !== null);
-            if (!isValid) {
-                throw new Error('One or more upsert operations failed');
-            }
+                    const updateFields = keys
+                        .filter(key => key !== 'id')
+                        .map(key => `${key} = excluded.${key}`)
+                        .join(', ');
 
-            await db.runAsync('COMMIT');
-            return results;
+                    const query = `
+                        INSERT INTO ${this.tableName} (${keys.join(', ')})
+                        VALUES (${placeholders})
+                        ON CONFLICT(id) DO UPDATE SET ${updateFields};
+                    `;
+                    await txn.runAsync(query, values as Array<any>);
+                }
+            });
+
+            return items;
         } catch (error) {
-            await db.runAsync('ROLLBACK');
+            console.log(`Error during upsertMany in table ${this.tableName}:`, error);
             throw error;
         }
     }
 }
 
+
+
 export class AccountRepository extends UpsertManyRepository<Account> {
     async getAllByUser(userId: string): Promise<Account[] | null> {
-        return await db.getAllAsync(`SELECT * FROM ${this.tableName} WHERE userId = ?`, userId)
+        return await db.getAllAsync(`SELECT * FROM ${this.tableName} WHERE userId = ?`, [userId]);
     }
 }
 
 export class TransactionRepository extends UpsertManyRepository<Transaction> {
     async getAllByAccount(accountId: string) {
-        return await db.getAllAsync(`SELECT * FROM ${this.tableName} WHERE accountId = ?`, accountId)
+        return await db.getAllAsync(`SELECT * FROM ${this.tableName} WHERE accountId = ?`, [accountId]);
     }
+
     async getAllByAccounts(accountIds: string[]) {
         const placeholders = accountIds.map(() => '?').join(',');
         const query = `SELECT * FROM ${this.tableName} WHERE accountId IN (${placeholders})`;
         return await db.getAllAsync<Transaction>(query, accountIds);
     }
+
     async getAllSortedNames() {
         const query = `SELECT description, COUNT(description) as frequency 
-        FROM transactions 
+        FROM ${this.tableName} 
         GROUP BY description 
-        ORDER BY frequency DESC`
+        ORDER BY frequency DESC`;
 
-        return await db.getAllAsync<TransactionsFrequency>(query)
-
+        return await db.getAllAsync<TransactionsFrequency>(query);
     }
 }

@@ -1,8 +1,6 @@
 import Checkbox from "expo-checkbox";
-import { Pressable, Text, ViewStyle } from "react-native";
-import { View } from "react-native";
+import { Text, View, ViewStyle } from "react-native";
 import { Account } from "../../../../features/accounts/types";
-import { useEffect, useRef, useState } from "react";
 import AccountItem from "./accountItem";
 
 type PropsType = {
@@ -50,6 +48,7 @@ const AccountsList = ({ accounts, title, containerStyle, update, selectedIds }: 
             justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: 10,
+            paddingRight: 12,
         }} >
             <Text style={{
                 fontSize: 16,

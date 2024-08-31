@@ -1,10 +1,7 @@
-import React, { useRef, useState } from 'react'
-import { Vibration, View } from 'react-native'
-import Button from '../button/Button';
-import { StyleSheet } from 'react-native';
-import NumpadButton from './NumpadButton';
-import { ViewStyle } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, Vibration, View, ViewStyle } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import NumpadButton from './NumpadButton';
 
 const buttons = [
   ['1', '2', '3',],
@@ -13,7 +10,7 @@ const buttons = [
   ['.', '0', 'delete',],
 ];
 
-const Numpad = ({ onKeyPress, style }: { onKeyPress: (value: string) => void, style?: ViewStyle }) => {
+const Numpad = ({ onKeyPress, style }: { onKeyPress: (value: string) => void, style?: ViewStyle}) => {
 
   const withVibratePress = (value: string) => {
     Vibration.vibrate(50)
@@ -22,6 +19,7 @@ const Numpad = ({ onKeyPress, style }: { onKeyPress: (value: string) => void, st
 
   return (
     <View style={[styles.container, style]}>
+
       {buttons.map((row, i) => (
         <View key={i} style={{ flexDirection: 'row', columnGap: 4 }}>
           {row.map((button) => (
@@ -44,9 +42,6 @@ const Numpad = ({ onKeyPress, style }: { onKeyPress: (value: string) => void, st
           ))}
         </View>
       ))}
-
-
-
     </View>
   )
 }

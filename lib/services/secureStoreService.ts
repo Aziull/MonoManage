@@ -9,7 +9,7 @@ interface SecureStoreService {
 
 const secureStoreService: SecureStoreService = {
   saveAuthToken: async (token: string | null): Promise<void> => {
-    try {      
+    try {
       await SecureStore.setItemAsync(KEY_AUTH_TOKEN, JSON.stringify(token));
     } catch (error) {
       console.error('Помилка при збереженні токену', error);
@@ -20,8 +20,8 @@ const secureStoreService: SecureStoreService = {
   getAuthToken: async (): Promise<string | null> => {
     try {
       const json = await SecureStore.getItemAsync(KEY_AUTH_TOKEN);
-      
-      return JSON.parse(json);
+
+      return json ? JSON.parse(json) : null;
     } catch (error) {
       console.error('Помилка при отриманні токену', error);
       throw error;

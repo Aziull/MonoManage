@@ -1,5 +1,6 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import { NavigatorScreenParams, RouteProp } from '@react-navigation/native';
+import { Transaction } from '../features/transaction/types';
 
 type TransactionScreenType = {
     deleted: boolean
@@ -15,7 +16,7 @@ export type RootStackParamList = {
     SignIn: undefined;
     WebScreen: { url: string };
     Home: NavigatorScreenParams<BottomTabParamList>;
-    NewTransaction: { type: TransactionType };
+    NewTransaction: { type: TransactionType, transaction?: Transaction};
 };
 
 export type SignInProps = {
@@ -42,3 +43,6 @@ export type TransactionsScreenProps = {
 export type DeletedTransactionsScreenProps = {
     route: RouteProp<BottomTabParamList, 'DeletedTransactions'>;
 };
+
+export type NewTransactionNavigationProp = StackNavigationProp<RootStackParamList, 'NewTransaction'>;
+

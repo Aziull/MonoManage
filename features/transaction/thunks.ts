@@ -1,59 +1,18 @@
-import { createAsyncThunk, isRejectedWithValue } from '@reduxjs/toolkit';
-import { BankAccountTransactionsRequestArgs, BankAccountTransactionsRequestArgs2, Transaction } from './types';
-import { Transaction as TransactionEntity } from '../../services/database/entities';
-import { TransactionModel } from '../../services/database';
-import { transactionApi } from './api';
-import { mapToEntity, mapToModel } from './lib';
-import { getBankApiUrl } from '../api/config';
-import axios from 'axios'
-import { transactionRepository } from '../../db';
-// Припустимо, що transaction має тип Transaction
-export const getTransactionsAsync = createAsyncThunk(
-    'transaction/getAllTransactionAsync',
-    async (_, { rejectWithValue }) => {
-        try {
-            const transactions: TransactionEntity[] = await transactionRepository.getAll();
-            return transactions.map(mapToModel);
-        } catch (error) {
-            return rejectWithValue(error);
-        }
-    }
-);
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import { mapToModel } from './lib';
+import { Transaction } from './types';
+
+import { accountRepository, transactionRepository } from '../../db';
+import DateUtils from '../../utils/timeUtils';
 
 export const getAllTransactionsByAccounts = createAsyncThunk(
     'getAllByAccounts',
-    async (accountIds: string[]) => {
-        return await transactionRepository.getAllByAccounts(accountIds);
-    }
-)
-
-const fetchTransactionsFromAPI = async (accountId: string, token: string) => {
-    try {
-        const response = await axios.get(`https://api.example.com/accounts/${accountId}/transactions`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        return response.data;
-    } catch (error) {
-        console.error(`Error fetching transactions for account ${accountId}`, error);
-        return [];
-    }
-};
-
-export const ba = createAsyncThunk(
-    'ba',
-    async ({ from, to, accounts, bankName, requestPath }: BankAccountTransactionsRequestArgs2, { rejectWithValue }) => {
+    async (accountIds: string[], { rejectWithValue }) => {
         try {
-
-            const res = await Promise.all(
-                accounts.map(({ id, lastSync }) => {
-                    const fromDate = lastSync > from ? lastSync : from;
-                    return fetch(`${getBankApiUrl(bankName, requestPath)}/${id}/${fromDate}/${to}`)
-                })
-            )
-            const data = await Promise.all(res.map(r => r.json()))
-            console.log(data.flat());
+            const inDb = await transactionRepository.getAllByAccounts(accountIds);
+            return inDb.map(mapToModel)
         } catch (error) {
-            rejectWithValue(error)
+            return rejectWithValue('Error while fetching transactuions from DB');
         }
     }
 )
@@ -64,8 +23,10 @@ export const addTransactionAsync = createAsyncThunk(
     async (transaction: Omit<Transaction, 'id'>, { rejectWithValue }) => {
         try {
             const created = await transactionRepository.create(transaction)
+            console.log(created);
+
             if (!created) throw Error('Could not create transaction');
-            return created;
+            return mapToModel(created);
 
         } catch (error) {
             return rejectWithValue(error);
@@ -73,34 +34,36 @@ export const addTransactionAsync = createAsyncThunk(
     }
 );
 
-export const updateTransactionsInDb = createAsyncThunk(
-    'transaction/updateInDb',
+export const updateTransaction = createAsyncThunk(
+    'transaction/update',
+    async ({ id, transaction }: { transaction: Partial<Transaction>, id: string }, { rejectWithValue }) => {
+        try {
+            const fromDB = await transactionRepository.update(id, transaction);
+            if (!fromDB) throw Error('Error while update transaction');
+            return mapToModel(fromDB);
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+)
+
+export const upsertAccountTransactions = createAsyncThunk(
+    'transaction/upsertMany',
     async (transactions: Transaction[], { rejectWithValue }) => {
         try {
-            if (!transactions) return rejectWithValue('No data in response');
-            await TransactionModel.insertOrUpdateMultiple(transactions, (item: Transaction) => `id = '${item.id}'`)
-            return transactions.map(mapToModel);
+            const inDbTransactions = await transactionRepository.upsertMany(transactions);
+
+            if (inDbTransactions.length) await accountRepository.update(transactions[0].accountId, {
+                lastSync: DateUtils.getCurrentUnixTime(),
+            })
+
+            return inDbTransactions.map(mapToModel);
         } catch (error) {
-            return rejectWithValue(error);
+            return rejectWithValue({ message: "Помилка оновлення данних" });
         }
     }
 );
 
-
-export const addBankTransactionsAsync = createAsyncThunk(
-    'transaction/addBankTransactionsAsync',
-    async (args: BankAccountTransactionsRequestArgs, { dispatch, rejectWithValue }) => {
-        try {
-            const transactions = await dispatch(transactionApi.endpoints.getBankAccountTransactions.initiate(args)).unwrap();
-
-            if (!transactions) throw Error('No data in response');
-            await TransactionModel.insertOrUpdateMultiple(transactions, (item: Transaction) => `id = '${item.id}'`)
-            return transactions.map(mapToModel);
-        } catch (error) {
-            return rejectWithValue(error);
-        }
-    },
-);
 
 export const toggleIgnoreTransactionAsyncs = createAsyncThunk(
     'transaction/toggleIgnoreTransactionAsyncs',

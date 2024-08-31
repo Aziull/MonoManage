@@ -1,32 +1,26 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { View, TextInput, StyleSheet, Alert, Text, ImageBackground, FlatList, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
-import { useDispatch } from 'react-redux';
-import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import React, { useRef, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { Alert, ImageBackground, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
-import TransactionTypeSwitcher from '../../components/TransactionTypeSwitcher';
 import Layout from '../../components/Layout';
-import WalletSelector from './WalletSelector';
+import TransactionTypeSwitcher from '../../components/TransactionTypeSwitcher';
 import Header from './Header';
-import Numpad from '../../components/numpad/Numpad';
 
-import { TransactionFormProps, TransactionType } from '../../navigation/types';
-import { AppDispatch } from '../../store';
-import { addTransactionAsync } from '../../features/transaction/thunks';
-import { TransactionFormValidation } from '../../lib/validation';
-import { Transaction } from '../../features/transaction/types';
-import z from 'zod';
-import DateTimePicker from 'react-native-ui-datepicker';
-import Button from '../../components/button/Button';
-import HiddeOnKeyboard from '../../components/HiddeByKeyboard';
-import { TabButton, TabSymbolIconButton } from '../../components/numpad/TabButton';
 import { LinearGradient } from 'expo-linear-gradient';
-import TransactionNamePicker, { useTransactionsNames } from '../../components/TransactionNamePicker';
+import z from 'zod';
+import HiddeOnKeyboard from '../../components/HiddeByKeyboard';
+import { selectAccountById } from '../../features/accounts/slice';
+import { addTransactionAsync, updateTransaction } from '../../features/transaction/thunks';
+import { Transaction } from '../../features/transaction/types';
+import { TransactionFormValidation } from '../../lib/validation';
+import { TransactionFormProps, TransactionType } from '../../navigation/types';
+import { AppDispatch, RootState } from '../../store';
+import CurrencyUtils from '../../utils/currencyUtils';
 import ActionButtons from './ActionButtons';
-import { AnimatedActiveText, AnimatedActiveTextInput } from '../../components/ui/AnimatedActiveText';
-import TransactionFields from './TransactionFields';
 import ActionsTabs from './ActionsTabs';
+import TransactionFields from './TransactionFields';
 
 export type ActionType = '₴' | 'description' | 'account' | 'date';
 export type TabButtonType = {
@@ -38,23 +32,31 @@ export type TabButtonType = {
 }
 
 
+// Утилітарна функція для обчислення суми з урахуванням типу транзакції
+const calculateAmount = (type: TransactionType, amount: number): number => {
+    return type === 'income' ? CurrencyUtils.toMinorUnits(Math.abs(amount)) : CurrencyUtils.toMinorUnits(-Math.abs(amount));
+};
 
 
 
 const TransactionForm: React.FC<TransactionFormProps> = ({ navigation, route }) => {
     let currentDate = new Date();
+    const { transaction } = route.params;
+    const account = useSelector((state: RootState) => selectAccountById(state, transaction?.accountId || ''))
     const [type, setType] = useState<TransactionType>(route.params.type);
-    const transactionsNames = useTransactionsNames()
     const dispatch = useDispatch<AppDispatch>();
-    const [selectedAction, setSelectedAction] = useState<ActionType>('₴');
+    const editable = !account || account?.type === 'cash';
+
+    const [selectedAction, setSelectedAction] = useState<ActionType>(editable ? '₴' : 'description');
     const descriptionRef = useRef<TextInput>(null);
+
     const { control, handleSubmit, getValues, formState: { isValid } } = useForm<z.infer<typeof TransactionFormValidation>>({
         resolver: zodResolver(TransactionFormValidation),
         defaultValues: {
-            description: '',
-            date: currentDate,
-            amount: '0.00',
-            accountId: 'cash',
+            description: transaction?.description || '',
+            date: transaction ? new Date(transaction.time * 1000) : currentDate,
+            amount: transaction ? `${transaction.amount / 1000}` : '0.00',
+            accountId: account?.id || 'cash',
         },
     });
 
@@ -63,19 +65,46 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ navigation, route }) 
         name: ['date', 'amount', 'description'],
     });
 
-    const onSubmit = async ({ amount: amountStr, description, date, accountId }: z.infer<typeof TransactionFormValidation>) => {
-        if (!accountId) return Alert.alert('No account selected');
-        const amount = parseFloat(amountStr);
-        if (isNaN(amount)) return Alert.alert('Invalid amount, please enter a number');
-        const transaction: Omit<Transaction, 'id'> = {
-            amount: type === 'income' ? Math.abs(amount) * 100 : -Math.abs(amount) * 100,
-            description,
-            time: date.getTime() / 1000,
-            accountId: accountId,
-            deleted: false,
-        };
+    const onSubmit = async ({
+        amount: amountStr,
+        description,
+        date,
+        accountId,
+    }: z.infer<typeof TransactionFormValidation>) => {
 
-        dispatch(addTransactionAsync(transaction));
+        if (!accountId) {
+            Alert.alert('No account selected');
+            return;
+        }
+
+        const amountParsed = CurrencyUtils.parseCurrency(amountStr);
+        if (amountParsed === null) {
+            Alert.alert('Invalid amount, please enter a number');
+            return;
+        }
+
+        const amount = calculateAmount(type, amountParsed);
+        const time = date.getTime() / 1000;
+
+        const updatedTransaction = {
+            description,
+            ...(account?.type === 'cash' && { amount, time }), // Додаємо `amount` та `time` тільки якщо тип рахунку `cash`
+        };
+        
+
+        if (transaction) {
+            dispatch(updateTransaction({ id: transaction.id, transaction: updatedTransaction }));
+        } else {
+            const newTransaction: Omit<Transaction, 'id'> = {
+                amount,
+                description,
+                time,
+                accountId,
+                deleted: false,
+            };
+            dispatch(addTransactionAsync(newTransaction));
+        }
+
         navigation.goBack();
     };
 
@@ -83,19 +112,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ navigation, route }) 
         descriptionRef.current?.blur();
     }
 
-    const onDescriptionPress = useCallback(() => {
-        if (selectedAction !== 'description')
-            setTimeout(() => {
-                setSelectedAction('description')
-
-            }, 500)
-    }, [selectedAction])
-
     const onNotFoundPress = () => {
         if (descriptionRef.current?.isFocused) { descriptionRef.current?.blur(); }
         descriptionRef.current?.focus();
     }
-
     return (
         <Layout style={styles.container}>
             <View style={styles.formContainer}>
@@ -105,6 +125,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ navigation, route }) 
                         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                         style={{ flex: 1 }}>
                         <TransactionFields
+                            ref={descriptionRef}
+                            transaction={transaction}
                             control={control}
                             date={watched[0]}
                             amount={watched[1]}
@@ -119,6 +141,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ navigation, route }) 
                 </HiddeOnKeyboard>
                 <HiddeOnKeyboard>
                     <ActionsTabs
+                        onNotFoundPress={onNotFoundPress}
+                        editable={editable}
                         selectedAction={selectedAction}
                         changeTab={(tab) => { setSelectedAction(tab) }}
                         control={control}

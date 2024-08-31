@@ -1,17 +1,17 @@
-import React, { useEffect } from 'react';
 import { BottomTabBarProps, BottomTabNavigationOptions, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React, { useEffect } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Circle, Path, Rect, Svg } from 'react-native-svg';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import Transactions from './Transactions';
-import DeletedTransactions from './DeletedTransactions';
-import { BottomTabParamList, HomeProps } from '../navigation/types';
-import { AppDispatch, RootState } from '../store';
 import { useDispatch, useSelector } from 'react-redux';
+import { selectAllAccounts } from '../features/accounts/slice';
 import { getAccounts } from '../features/accounts/thunks';
 import { getAllTransactionsByAccounts } from '../features/transaction/thunks';
-import { selectAllAccounts } from '../features/accounts/slice';
-import { Pressable, StyleSheet, Text, TouchableOpacity, useWindowDimensions, Vibration, View } from 'react-native';
-import { Circle, G, Path, Rect, Svg } from 'react-native-svg';
 import { useKeyboardVisible } from '../hook/useKeyboardVisible';
+import useSyncTransactions from '../hook/useSyncTransactions';
+import { BottomTabParamList, HomeProps } from '../navigation/types';
+import { AppDispatch, RootState } from '../store';
+import Transactions from './Transactions';
 
 
 const { Navigator, Screen } = createBottomTabNavigator<BottomTabParamList>();
@@ -42,10 +42,10 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
                 style={[styles.svg, { zIndex: 2, pointerEvents: 'box-none' }]}
                 viewBox={`0 0 ${SVG_ORIGINAL_WIDTH} ${SVG_ORIGINAL_HEIGHT}`}
             >
-                <Circle onPress={navigateExpence} cx="664" cy="97" r="96" fill="#358438" />
-                <Rect onPress={navigateExpence} stroke='white' strokeMiterlimit={10} fill='none' strokeWidth={8} x="621.83" y="58.08" width="85" height="84.5" rx="16" ry="16" />
-                <Rect onPress={navigateExpence} fill={"white"} x="660.34" y="74.28" width="8" height="42.33" rx="4" ry="4" />
-                <Path onPress={navigateExpence} fill={"white"} d="m642.59,95.28h0c1.18-1.1,3.03-1.03,4.13.15l15.47,16.65c1.16,1.24,3.12,1.24,4.28,0l15.48-16.65c1.1-1.18,2.95-1.25,4.13-.15h0c1.18,1.1,1.25,2.95.15,4.13l-19.76,21.24c-1.16,1.24-3.12,1.24-4.28,0l-19.75-21.24c-1.1-1.18-1.03-3.03.15-4.13Z" />
+                <Circle onPress={navigateIncome} cx="664" cy="97" r="96" fill="#358438" />
+                <Rect onPress={navigateIncome} stroke='white' strokeMiterlimit={10} fill='none' strokeWidth={8} x="621.83" y="58.08" width="85" height="84.5" rx="16" ry="16" />
+                <Rect onPress={navigateIncome} fill={"white"} x="660.34" y="74.28" width="8" height="42.33" rx="4" ry="4" />
+                <Path onPress={navigateIncome} fill={"white"} d="m642.59,95.28h0c1.18-1.1,3.03-1.03,4.13.15l15.47,16.65c1.16,1.24,3.12,1.24,4.28,0l15.48-16.65c1.1-1.18,2.95-1.25,4.13-.15h0c1.18,1.1,1.25,2.95.15,4.13l-19.76,21.24c-1.16,1.24-3.12,1.24-4.28,0l-19.75-21.24c-1.1-1.18-1.03-3.03.15-4.13Z" />
             </Svg>
             <Svg
                 width="100%"
@@ -53,10 +53,10 @@ const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => 
                 style={[styles.svg, { zIndex: 2, pointerEvents: 'box-none' }]}
                 viewBox={`0 0 ${SVG_ORIGINAL_WIDTH} ${SVG_ORIGINAL_HEIGHT}`}
             >
-                <Circle onPress={navigateIncome} cx="462" cy="96" r="96" fill={"#7830f7"} />
-                <Rect onPress={navigateIncome} strokeWidth={8} stroke={'white'} fill={'none'} x="419.5" y="57.5" width="85" height="84.5" rx="16" ry="16" />
-                <Rect onPress={navigateIncome} stroke='white' strokeWidth={0.25} strokeMiterlimit={10} fill={"white"} x="458" y="78.67" width="8" height="42.33" rx="4" ry="4" />
-                <Path onPress={navigateIncome} stroke='white' strokeWidth={0.25} strokeMiterlimit={10} fill={"white"} d="m483.75,100.01h0c-1.18,1.1-3.03,1.03-4.13-.15l-15.47-16.65c-1.16-1.24-3.12-1.24-4.28,0l-15.48,16.65c-1.1,1.18-2.95,1.25-4.13.15h0c-1.18-1.1-1.25-2.95-.15-4.13l19.76-21.24c1.16-1.24,3.12-1.24,4.28,0l19.75,21.24c1.1,1.18,1.03,3.03-.15,4.13Z" />
+                <Circle onPress={navigateExpence} cx="462" cy="96" r="96" fill={"#7830f7"} />
+                <Rect onPress={navigateExpence} strokeWidth={8} stroke={'white'} fill={'none'} x="419.5" y="57.5" width="85" height="84.5" rx="16" ry="16" />
+                <Rect onPress={navigateExpence} stroke='white' strokeWidth={0.25} strokeMiterlimit={10} fill={"white"} x="458" y="78.67" width="8" height="42.33" rx="4" ry="4" />
+                <Path onPress={navigateExpence} stroke='white' strokeWidth={0.25} strokeMiterlimit={10} fill={"white"} d="m483.75,100.01h0c-1.18,1.1-3.03,1.03-4.13-.15l-15.47-16.65c-1.16-1.24-3.12-1.24-4.28,0l-15.48,16.65c-1.1,1.18-2.95,1.25-4.13.15h0c-1.18-1.1-1.25-2.95-.15-4.13l19.76-21.24c1.16-1.24,3.12-1.24,4.28,0l19.75,21.24c1.1,1.18,1.03,3.03-.15,4.13Z" />
             </Svg>
 
 
@@ -118,8 +118,11 @@ const screenOptions = (iconName: string, label: string): BottomTabNavigationOpti
 
 const Home = ({ }: HomeProps) => {
     const dispatch = useDispatch<AppDispatch>();
-    const { user } = useSelector((state: RootState) => state.auth)
+    const { user } = useSelector((state: RootState) => state.auth);
     const accounts = useSelector(selectAllAccounts);
+
+    useSyncTransactions();
+
     useEffect(() => {
         dispatch(getAccounts());
     }, [user])

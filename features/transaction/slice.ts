@@ -1,13 +1,16 @@
-import { createEntityAdapter, createSelector, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
+import { createEntityAdapter, createSelector, createSlice, EntityState, isAnyOf } from '@reduxjs/toolkit';
 import { Transaction } from './types';
 
-import { addTransactionAsync, getTransactionsAsync, toggleIgnoreTransactionAsyncs, addBankTransactionsAsync, getAllTransactionsByAccounts } from './thunks';
 import { RootState } from '../../store';
 import { applyFilters } from '../../utils/filters/applyFilters';
+import { transactionApi } from './api';
+import { addTransactionAsync, getAllTransactionsByAccounts, toggleIgnoreTransactionAsyncs, updateTransaction, upsertAccountTransactions } from './thunks';
 
 type StateType = {
   status: 'idle' | 'loading' | 'succeeded' | 'failed',
   error: null | string | object | unknown,
+  fetchedAccounts: number;
+  processedAccounts: number,
 }
 
 const transactionsAdapter = createEntityAdapter<Transaction>({
@@ -16,6 +19,8 @@ const transactionsAdapter = createEntityAdapter<Transaction>({
 
 const initialState: EntityState<Transaction, string> & StateType = transactionsAdapter.getInitialState({
   status: 'idle',
+  fetchedAccounts: 0,
+  processedAccounts: 0,
   error: null,
 
 },);
@@ -26,25 +31,24 @@ const transactionSlice = createSlice({
   reducers: {
     addTrasnaction: (state, action) => {
       transactionsAdapter.addOne(state, action.payload)
+    },
+    setFetchedAccountsCount: (state, {payload}) => {
+      state.fetchedAccounts = payload;
+    },
+    resetProcessedAccounts: (state) => {
+      state.processedAccounts = 0;
+    },
+    addProcessedAccount: (state) => {
+      if (state.fetchedAccounts === state.processedAccounts) return;
+      state.processedAccounts += 1;
     }
   },
   extraReducers: (builder) => {
-    builder.addCase(addBankTransactionsAsync.fulfilled, (state, { payload }: PayloadAction<Transaction[]>) => {
-      transactionsAdapter.upsertMany(state, payload);
-    })
-      .addCase(getTransactionsAsync.fulfilled, transactionsAdapter.addMany)
-      .addCase(addTransactionAsync.fulfilled, (state, { payload }) => {
-        transactionsAdapter.updateOne(state, {
-          id: payload.id,
-          changes: payload
-        })
-      })
-      .addCase(toggleIgnoreTransactionAsyncs.pending, (state) => {
-        state.status = 'loading'
-      })
+    builder
+      .addCase(upsertAccountTransactions.fulfilled, transactionsAdapter.upsertMany)
+      .addCase(addTransactionAsync.fulfilled, transactionsAdapter.addOne)
       .addCase(toggleIgnoreTransactionAsyncs.fulfilled, (state, { payload }) => {
         const { id, newDeleted } = payload;
-        state.status = 'idle'
         transactionsAdapter.updateOne(state, {
           id,
           changes: {
@@ -54,6 +58,42 @@ const transactionSlice = createSlice({
         })
       })
       .addCase(getAllTransactionsByAccounts.fulfilled, transactionsAdapter.setAll)
+      .addCase(updateTransaction.fulfilled, (state, { payload }) => {
+        const { id, ...transaction } = payload;
+        transactionsAdapter.updateOne(state, {
+          id,
+          changes: {
+            ...transaction
+          }
+
+        })
+      })
+      .addMatcher(
+        isAnyOf(
+          transactionApi.endpoints.getTransactions.matchPending,
+          toggleIgnoreTransactionAsyncs.pending,
+          updateTransaction.pending,
+          upsertAccountTransactions.pending,
+        ),
+        (state) => {
+          state.status = 'loading'
+        }
+      )
+      .addMatcher(
+        isAnyOf(
+          upsertAccountTransactions.fulfilled,
+          updateTransaction.fulfilled,
+          getAllTransactionsByAccounts.fulfilled,
+          toggleIgnoreTransactionAsyncs.fulfilled,
+          addTransactionAsync.fulfilled,
+          transactionApi.endpoints.getTransactions.matchRejected,
+          transactionApi.endpoints.getTransactions.matchFulfilled,
+        ),
+        (state) => {
+          state.status = 'idle';
+        }
+      )
+
   }
 });
 
@@ -84,10 +124,12 @@ export const selectNotDeletedTransactions = createSelector(
 const selectFilters = (state: RootState) => state.filters;
 
 export const selectFilteredTransactions = createSelector(
-    [selectFilters, (state: RootState, deleted: boolean) => deleted ? selectDeletedTransactions(state) : selectNotDeletedTransactions(state)],
-    (filters, transactions) => applyFilters(transactions, filters)
+  [selectFilters, (state: RootState, deleted: boolean) => deleted ? selectDeletedTransactions(state) : selectNotDeletedTransactions(state)],
+  (filters, transactions) => {
+    return applyFilters(transactions, filters)
+  }
 );
 
 
-export const { addTrasnaction } = transactionSlice.actions;
+export const { addTrasnaction, resetProcessedAccounts, addProcessedAccount, setFetchedAccountsCount } = transactionSlice.actions;
 export default transactionSlice.reducer;

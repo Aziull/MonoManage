@@ -1,8 +1,5 @@
-import { Text } from "react-native"
-import { useKeyboardVisible } from "../../hook/useKeyboardVisible"
-import { StyleSheet } from "react-native"
-import { colors } from "./constants"
 import Button, { ButtoPropsType } from "../../components/button/Button"
+import { useKeyboardVisible } from "../../hook/useKeyboardVisible"
 
 type Props = {
     type: 'expense' | 'income',

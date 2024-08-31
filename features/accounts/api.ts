@@ -1,29 +1,15 @@
-import { Account, MonobankClientDto } from './types';
-import { mapClientAccounts } from './lib';
 import { baseApi } from '../api';
-import { getBankApiUrl } from '../api/config';
-import { BankRequestArgs } from '../transaction/types';
-import { updateAccountInDb } from './thunks';
-import { updateAccounts } from './slice';
+import { mapClientAccounts } from './lib';
+import { Account, MonobankClientDto } from './types';
 export const accountApi = baseApi.injectEndpoints({
+    overrideExisting: true,
     endpoints: (builder) => ({
-        getBankAccounts: builder.query<Account[], BankRequestArgs>({
-            query: ({ bankName, requestPath }) => `${getBankApiUrl(bankName, requestPath)}`,
+        getBankAccounts: builder.query<Account[], void>({
+            query: () => `https://api.monobank.ua/personal/client-info`,
             transformResponse: (response: MonobankClientDto) => mapClientAccounts(response),
-            async onQueryStarted(_, { queryFulfilled, dispatch }) {
-                console.log('Отримання рахунків розпочато');
-                try {
-                    const { data } = await queryFulfilled;
-
-                    dispatch(updateAccountInDb(data));
-                    dispatch(updateAccounts(data))
-                    console.log('Рахунок отримано успішно', data);
-                } catch (error) {
-                    console.error('Помилка отримання рахунків', error);
-                }
-            },
+            async onQueryStarted(_, { queryFulfilled, dispatch }) { },
         }),
     }),
 });
 
-export const { useGetBankAccountsQuery } = accountApi;
+export const { useLazyGetBankAccountsQuery, useGetBankAccountsQuery } = accountApi;

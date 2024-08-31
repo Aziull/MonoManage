@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { User as UserEntity } from "../../services/database/entities";
+import { User as UserEntity } from "../../db/entities";
 import { userRepository } from "../../db";
 
 

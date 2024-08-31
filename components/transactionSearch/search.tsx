@@ -1,10 +1,8 @@
-import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { TouchableWithoutFeedback, ViewStyle } from 'react-native';
-import { StyleSheet, View, TextInput, Keyboard, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Keyboard, TextInput, ViewStyle } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store';
 import { setDescription } from '../../features/filter/slice';
+import { RootState } from '../../store';
 import Search from '../Search';
 
 type SearchProps = {

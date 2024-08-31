@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet, ViewStyle, Dimensions } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import Button from './button/Button';
 
 type TransactionType = 'income' | 'expense';
@@ -20,6 +20,21 @@ const TransactionTypeSwitcher: React.FC<PropsType> = ({ selectedType, onTypeChan
   return (
     <View style={[styles.switcherContainer, style]}>
       <Button
+        size='sm'
+        variant='ghost'
+        onPress={() => onTypeChange('expense')}
+        style={[styles.button,
+        selectedType === 'expense' && {
+          backgroundColor: '#7e47ff90'
+        }
+        ]}
+        textStyle={{
+          color: selectedType === 'expense' ? 'white' : '#7e47ff'
+        }}
+      >
+        Витрата
+      </Button>
+      <Button
         variant='ghost'
         size='sm'
         onPress={() => onTypeChange('income')}
@@ -33,21 +48,6 @@ const TransactionTypeSwitcher: React.FC<PropsType> = ({ selectedType, onTypeChan
         }}
       >
         Прибуток
-      </Button>
-      <Button
-        size='sm'
-        variant='ghost'
-        onPress={() => onTypeChange('expense')}
-        style={[styles.button,
-          selectedType === 'expense' && {
-            backgroundColor: '#7e47ff90'
-          }
-          ]}
-          textStyle={{
-            color: selectedType === 'expense' ? 'white' : '#7e47ff'
-          }}
-      >
-        Витрата
       </Button>
     </View>
   );
