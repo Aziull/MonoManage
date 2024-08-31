@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MonoManage",
-    "slug": "mono-manage",
+    "name": "monKey",
+    "slug": "monkey",
     "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,16 +22,19 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.MonoManage"
+      "package": "com.anonymous.monKey"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "8e1469e1-4408-4f27-abf6-d996c2a7012d"
+        "projectId": "a2ae9843-710d-4d32-bdf2-91df0d244ea3"
       }
     },
-    "owner": "nazarixxxxx"
+    "owner": "nazarixxxxx1",
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
