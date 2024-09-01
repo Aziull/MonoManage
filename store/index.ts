@@ -9,7 +9,7 @@ import rootReducer from './rootReducer';
 const persistConfig = {
   key: 'root',
   storage: expoSecureStoreAdapter,
-  whitelist: ['authToken', 'filters'],
+  whitelist: ['authToken', 'filters', 'auth'],
 };
 
 
