@@ -34,13 +34,39 @@ const scripts = `
 
     observeAndSend('.id');
     observeAndSend('#qrcode', 'title');
+
+    const autoClickSpecificButton = () => {
+        const buttons = document.querySelectorAll('.pure-button');
+
+        for (let button of buttons) {
+            if (button.textContent.trim() === 'Активувати') {
+                button.click();
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const observeAndClickSpecificButton = () => {
+        if (autoClickSpecificButton()) return;
+
+        const observer = new MutationObserver(() => {
+
+            if (autoClickSpecificButton()) {
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    };
+
+    observeAndClickSpecificButton();
     `;
 
 const WebScreen = ({ route }: WebScreenProps) => {
     const dispatch: AppDispatch = useDispatch();
     const { url } = route.params;
     const [text, setText] = useState("Виконуємо вхід...");
-    
     const { colors } = useTheme();
     const styles = makeStyles({ colors });
 
@@ -61,7 +87,6 @@ const WebScreen = ({ route }: WebScreenProps) => {
 
     const onMessage = async (event: WebViewMessageEvent) => {
         const data = event.nativeEvent.data;
-        
 
         if (isURL(data)) {
             openLink(data);

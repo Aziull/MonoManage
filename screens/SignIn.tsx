@@ -59,7 +59,7 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
     }
     return (
         <Layout style={styles.container}>
-            <Image source={require('../assets/logo.png')} style={styles.logo} />
+            <Image source={require('../assets/logo.png')} resizeMode='contain' style={styles.logo} />
             <Text style={styles.title}>Вхід</Text>
             <Text style={styles.subtitle}>Оберіть спосіб входу:</Text>
 
