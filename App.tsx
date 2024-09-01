@@ -32,7 +32,6 @@ const App = () => {
             <NavigationContainer theme={CustomLightTheme}>
               <GestureHandlerRootView style={{ flex: 1, }}>
                 <AppNavigator />
-                <Button title='Try!' onPress={() => { Sentry.captureException(new Error('First error')) }} />
               </GestureHandlerRootView>
             </NavigationContainer >
           </PersistGate>
