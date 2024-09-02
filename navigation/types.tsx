@@ -17,6 +17,7 @@ export type RootStackParamList = {
     WebScreen: { url: string };
     Home: NavigatorScreenParams<BottomTabParamList>;
     NewTransaction: { type: TransactionType, transaction?: Transaction};
+    PrivacyPolicyScreen: undefined
 };
 
 export type SignInProps = {

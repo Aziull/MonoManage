@@ -8,6 +8,7 @@ import TransactionForm from '../screens/TransactionForm/TransactionForm';
 import WebScreen from '../screens/WebScreen';
 import { RootState } from '../store';
 import { RootStackParamList } from './types';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 
 const { Navigator, Screen } = createStackNavigator<RootStackParamList>();
 
@@ -24,6 +25,7 @@ const AppNavigator = () => {
                 <>
                     <Screen component={SignIn} name="SignIn" options={{ headerShown: false }} />
                     <Screen name="WebScreen" component={WebScreen} options={{ headerShown: true, headerTitle: "" }} />
+                    <Screen name="PrivacyPolicyScreen" component={PrivacyPolicyScreen} options={{ headerShown: true, headerTitle: "" }} />
                 </>
             ) : (
                 <>

@@ -99,6 +99,16 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
                     >
                         Увійти без банку
                     </Button>
+
+                    <Button
+                        variant='link'
+                        onPress={() => { navigation.navigate("PrivacyPolicyScreen") }}
+                        style={{
+                            alignSelf: 'flex-end'
+                        }}
+                    >
+                        Політика конфіденційності
+                    </Button>
                 </View>
             )
             }
